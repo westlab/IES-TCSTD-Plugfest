@@ -1,0 +1,49 @@
+[Syntonization の手順]
+Initialization step 1 (optional)
+  Follow-up message のあるtopic location/TIME/FUP をsubる。
+  This message can contain:
+    the location of the time timeserver
+    the precision of the master clock
+    other information about the precision
+    synchronizationのタイプも。モードで書けそう。[^1]
+
+Initialization step 2
+  Client側の処理。topic location/TIME/SYNをsubる。
+
+Synchronization (Syntonization step)
+  Serverは location/TIME/SYN へtimestampをpubる。
+  このとき、オプションとして、Correctionプロパティにms単位でprocessing time of the SYN messageを記入。
+  Clientは受け取ったら、受け取ったメッセージを出してみる？
+
+Synchronization (Follow-up step) option
+  NTPのオプション
+  ClientはServerへFollow-up messageを送る。
+
+[^1]: Modeについて
+SynchronizationならServer:Mode=4、Client:Mode=3
+SyntonizationならBroadcast:Mode=5、Broadcast Client:Mode=6
+[ref](https://milestone-of-se.nesuke.com/l7protocol/ntp/ntp-summary/)
+
+
+
+[Synchronization の手順]
+Master と Slave で同期。Master->Slave->Masterという流れみたい。MasterがリクエストしてSlaveが返答、みたいな。
+Initialization step 1
+  割愛
+
+Synchronization request message
+  masterが /TIME/SRQ で終わるtopicに時刻T1を入れる。
+  slaveはそれをsubしてて、T1と、自身の時刻t2を記憶。
+  オプションでCorrectionプロパティにactual processing time of REQ messageを入れるらしい、MQTTv3のため。
+
+SRS message
+  SRSが何かよくわかってない。
+  Slaveが TIME/SRS で終わるtopicにT1, t2, t3を入れる。
+  Correctionはオプション。
+  SRQとSRCは似るだろう。
+
+Estimation
+  MasterはSRSを受信。受信時刻をT4として保管。
+  ((t2-T1) + (T4-t3)) / 2 でdelay timeを計算。
+
+

@@ -1,0 +1,4 @@
+trials: 5
+interval: 1  # sec
+period: 2  # sec
+trial_timeout: 1.5  # sec

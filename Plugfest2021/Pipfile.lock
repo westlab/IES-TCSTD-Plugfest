@@ -1,0 +1,29 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "5247d1275df20bcbd12021aeb53741c813d412087b5b686758d61417270efc53"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.8"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "gmqtt": {
+            "hashes": [
+                "sha256:0e98a964393834e724c93b5dce9524c9f1255c338c0d972188794f54c6559f04",
+                "sha256:264efd997d97b778d349ba9e2ad3a7e5b62924cecece28177f472d075977eccc"
+            ],
+            "index": "pypi",
+            "version": "==0.6.9"
+        }
+    },
+    "develop": {}
+}
