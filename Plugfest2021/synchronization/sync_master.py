@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Synchronization
+RT-Sync(Synchronization)
 Master clock client
 """
 
 # Parameters
 broker='192.168.0.10'
-client_id='Sync_Master'
+client_id='RT-Sync_Master'
 topic_srq='location/TIME/SRQ'
 topic_srs='location/TIME/SRS'
 message_srs='SRS'
