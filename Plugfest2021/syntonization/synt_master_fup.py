@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Syntonization
+BR-Sync (Syntonization)
 Master clock client
 """
 
 # Parameters
 broker='192.168.0.10'
-client_id='Synt_Master_FUP'
+client_id='BR-Sync_Master_FUP'
 topic_fup='location/TIME/FUP'
 # topic_syn='location/TIME/SYN'
 # message_syn='SYN'
