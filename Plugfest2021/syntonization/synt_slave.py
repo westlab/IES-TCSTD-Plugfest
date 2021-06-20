@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Syntonization
+BR-Sync (Syntonization)
 Slave clock client
 """
 
 # Parameters
 broker='192.168.0.10'
-client_id='Synt_Slave'
+client_id='BR-Sync_Slave'
 topic_syn='location/TIME/SYN'
 topic_fup='location/TIME/FUP'
 message_fup='Follow-up message from ' + client_id
