@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Synchronization
+RT-Sync (Synchronization)
 Slave clock client
 """
 
 # Parameters
 broker='192.168.0.10'
-client_id='Sync_Slave'
+client_id='RT-Sync_Slave'
 topic_srq='location/TIME/SRQ'
 topic_srs='location/TIME/SRS'
 message_srq='SRQ'
