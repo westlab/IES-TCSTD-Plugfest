@@ -29,7 +29,7 @@ parser.add_argument('-q', '--quiet',
 parser.add_argument('-c', '--config',
     action = 'store',
     help = 'specify YAML config file',
-    default = '../config.yml',
+    default = '../ayu/ayuconfig.yml',
     type = str)
 
 args = parser.parse_args()
