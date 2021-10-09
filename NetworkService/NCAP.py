@@ -11,6 +11,9 @@ import sys
 import yaml
 import argparse
 import uuid
+import io
+import csv
+import pprint
 
 parser = argparse.ArgumentParser(
     prog = 'alpsmqtt.py',
@@ -45,16 +48,21 @@ if args.quiet:
 sqflag = False
 
 f = open(args.config, "r+")
-confdata = yaml.load(f)
+confdata = yaml.safe_load(f)
 
 host = confdata['mqtthost']
 #'192.168.0.10'
 port = int(confdata['mqttport'])
 #1883
-topicdop = confdata['spfx']+confdata['tomdop']+confdata['loc']
-topiccop = confdata['spfx']+confdata['tomcop']+confdata['loc']
-topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc']
+topicdop = confdata['spfx']+confdata['tomdop']+confdata['loc'] # publish
+topiccop = confdata['spfx']+confdata['tomcop']+confdata['loc'] # subscribe
+topiccopres = confdata['spfx']+confdata['tomcop']+confdata['locclient'] # publish
+topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc'] # subscribe
+topicd0opres = confdata['spfx']+confdata['tomd0op']+confdata['locclient'] # publish
 #'_1451.1.6(SPFX)/D0(TOM)/LOC'
+subscriptor = [
+            gmqtt.Subscription(topiccop, qos=0), gmqtt.Subscription(topicd0op, qos=0)
+        ]
 
 vgeomagx = {}
 vgeomagy = {}
@@ -71,6 +79,133 @@ villumi = {}
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
 
+def on_connect(client, flags, rc, properties):
+    print('[CONNECTED {}]'.format(client._client_id))
+
+def on_disconnect(client, packet, exc=None):
+    print('[DISCONNECTED {}]'.format(client._client_id))
+
+def on_message(client, topic, payload, qos, properties):
+    print('[RECV MSG {}] TOPIC: {} PAYLOAD: {} QOS: {} PROPERTIES: {}'
+        .format(client._client_id, topic, payload, qos, properties))
+    stopic = topic.split('/')
+    msg = str(payload.decode('utf-8'))
+    if stopic[1] == 'D0C':
+        f = io.StringIO()
+        f.write(msg)
+        f.seek(0)
+        csv_reader = csv.reader(f)
+        rmsg = [row for row in csv_reader]
+        f.close()
+        pprint.pprint(rmsg)
+        for mline in rmsg:
+            if mline[0]+mline[1]+mline[2] == '211':
+                print('Read Sensor Data COP')
+                print('msgLength', mline[3])
+                print('ncapId', mline[4])
+                print('timId', mline[5])
+                print('channelid', mline[6])
+                print('timeout', mline[7])
+                print('samplingMode', mline[8])
+                print('discoverlyId', mline[9])
+                if mline[4] == '0x00000000':
+                    if mline[9] == '0x00000001':
+                        if mline[5] == 0:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vtemp[mline[6]]+',0,0x00000001')
+                            print("Read TEMP")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vhumid[mline[6]]+',0,0x00000001')
+                            print("Read HUMID")
+                        elif mline[5] == 2:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vuv[mline[6]]+',0,0x00000001')
+                            print("Read UV")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+villumi[mline[6]]+',0,0x00000001')
+                            print("Read ILLUMI")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vpress[mline[6]]+',0,0x00000001')
+                            print("Read PRESS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagx[mline[6]]+',0,0x00000001')
+                            print("Read GEOMAGX")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagy[mline[6]]+',0,0x00000001')
+                            print("Read GEOMAGY")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagz[mline[6]]+',0,0x00000001')
+                            print("Read GEOMAGZ")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccelx[mline[6]]+',0,0x00000001')
+                            print("Read ACCELX")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccely[mline[6]]+',0,0x00000001')
+                            print("Read ACCELY")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccelz[mline[6]]+',0,0x00000001')
+                            print("Read ACCELZ")
+                        else:
+                            print("timId Error")
+                    else:
+                        print("discoverlyId Error")
+                else:
+                    print("ncapId Error")
+            elif mline[0]+mline[1]+mline[2] == '321':
+                print("Read TEDS Data COP")
+                print('msgLength', mline[3])
+                print('ncapId', mline[4])
+                print('timId', mline[5])
+                print('channelid', mline[6])
+                print('cmdClassId = 1', mline[7])
+                print('cmdFunctionId = 2', mline[8])
+                print('TedsAccessCode = 4', mline[9])
+                print('tedsOffset', mline[10])
+                print('timeout', mline[11])
+                print('discoverlyId', mline[12])
+                if mline[4] == '0x00000000':
+                    if mline[12] == '0x00000001':
+                        if mline[5] == 0:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
+                            print("Read TEMP TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
+                            print("Read HUMID TEDS")
+                        elif mline[5] == 2:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'UV_TEDS')
+                            print("Read UV TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
+                            print("Read ILLUMI TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
+                            print("Read PRESS TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
+                            print("Read GEOMAGX TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
+                            print("Read GEOMAGY TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
+                            print("Read GEOMAGZ TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
+                            print("Read ACCELX TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
+                            print("Read ACCELY TEDS")
+                        elif mline[5] == 1:
+                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
+                            print("Read ACCELZ TEDS")
+                        else:
+                            print("timId Error")
+                    else:
+                        print("discoverlyId Error")
+                else:
+                    print("ncapId Error")
+    elif stopic[1] == 'D0':
+        print("Unsupported Error")
+    else:
+        print("Type of Message Error")
 
 class NtfyDelegate(btle.DefaultDelegate):
     def __init__(self, params, alpsid, cli):
@@ -84,39 +219,39 @@ class NtfyDelegate(btle.DefaultDelegate):
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
         if int((cal[0:2]), 16) == 0xf2:
-            GeoMagnetic_X = s16(int((cal[6:8] + cal[4:6]), 16)) * 0.15
-            GeoMagnetic_Y = s16(int((cal[10:12] + cal[8:10]), 16)) * 0.15
-            GeoMagnetic_Z = s16(int((cal[14:16] + cal[12:14]), 16)) * 0.15
+            GeoMagnetic_X = '{0:.3f}'.format(s16(int((cal[6:8] + cal[4:6]), 16)) * 0.15)
+            GeoMagnetic_Y = '{0:.3f}'.format(s16(int((cal[10:12] + cal[8:10]), 16)) * 0.15)
+            GeoMagnetic_Z = '{0:.3f}'.format(s16(int((cal[14:16] + cal[12:14]), 16)) * 0.15)
             vgeomagx[self.alpsid] = GeoMagnetic_X
             vgeomagy[self.alpsid] = GeoMagnetic_Y
             vgeomagz[self.alpsid] = GeoMagnetic_Z
-            print(self.alpsid, ':Geo-Magnetic X:{0:.3f} Y:{1:.3f} Z:{2:.3f}'.format(GeoMagnetic_X, GeoMagnetic_Y, GeoMagnetic_Z))
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGX', '{0:.3f}'.format(GeoMagnetic_X))
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGY', '{0:.3f}'.format(GeoMagnetic_Y))
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', '{0:.3f}'.format(GeoMagnetic_Z))
-            Acceleration_X = 1.0 * s16(int((cal[18:20] + cal[16:18]), 16)) / 1024
-            Acceleration_Y = 1.0 * s16(int((cal[22:24] + cal[20:22]), 16)) / 1024
-            Acceleration_Z = 1.0 * s16(int((cal[26:28] + cal[24:26]), 16)) / 1024
+            print(self.alpsid, ':Geo-Magnetic X:', GeoMagnetic_X, ' Y:', GeoMagnetic_Y, ' Z:', GeoMagnetic_Z)
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGX', GeoMagnetic_X)
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGY', GeoMagnetic_Y)
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', GeoMagnetic_Z)
+            Acceleration_X = '{0:.3f}'.format(1.0 * s16(int((cal[18:20] + cal[16:18]), 16)) / 1024)
+            Acceleration_Y = '{0:.3f}'.format(1.0 * s16(int((cal[22:24] + cal[20:22]), 16)) / 1024)
+            Acceleration_Z = '{0:.3f}'.format(1.0 * s16(int((cal[26:28] + cal[24:26]), 16)) / 1024)
             vaccelx[self.alpsid] = Acceleration_X
             vaccely[self.alpsid] = Acceleration_Y
             vaccelz[self.alpsid] = Acceleration_Z
-            print(self.alpsid, ':Acceleration X:{0:.3f} Y:{1:.3f} Z:{2:.3f}'.format(Acceleration_X, Acceleration_Y, Acceleration_Z))
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELX', '{0:.3f}'.format(Acceleration_X))
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELY', '{0:.3f}'.format(Acceleration_Y))
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELZ', '{0:.3f}'.format(Acceleration_Z))
+            print(self.alpsid, ':Acceleration X:', Acceleration_X, ' Y:', Acceleration_Y, ' Z:', Acceleration_Z)
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELX', Acceleration_X)
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELY', Acceleration_Y)
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELZ', Acceleration_Z)
         if int((cal[0:2]), 16) == 0xf3:
-            Pressure = int((cal[6:8] + cal[4:6]), 16) * 860.0/65535 + 250	
-            Humidity = 1.0 * (int((cal[10:12] + cal[8:10]), 16) - 896 )/64
-            Temperature = 1.0*((int((cal[14:16] + cal[12:14]), 16) -2096)/50)
-            UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
-            AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
-            print(self.alpsid, ':Pressure:{0:.3f} Humidity:{1:.3f} Temperature:{2:.3f} '.format(Pressure, Humidity , Temperature))
-            self.cli.publish(topicdop+str(self.alpsid)+'/PRES', '{0:.3f}'.format(Pressure))
-            self.cli.publish(topicdop+str(self.alpsid)+'/HUMID', '{0:.3f}'.format(Humidity))
-            self.cli.publish(topicdop+str(self.alpsid)+'/TEMP', '{0:.3f}'.format(Temperature))
-            print(self.alpsid, ':UV:{0:.3f} AmbientLight:{1:.3f} '.format(UV, AmbientLight))
-            self.cli.publish(topicdop+str(self.alpsid)+'/UV', '{0:.3f}'.format(UV))
-            self.cli.publish(topicdop+str(self.alpsid)+'/ILLUMI', '{0:.3f}'.format(AmbientLight))
+            Pressure = '{0:.3f}'.format(int((cal[6:8] + cal[4:6]), 16) * 860.0/65535 + 250)
+            Humidity = '{0:.3f}'.format(1.0 * (int((cal[10:12] + cal[8:10]), 16) - 896 )/64)
+            Temperature = '{0:.3f}'.format(1.0*((int((cal[14:16] + cal[12:14]), 16) -2096)/50))
+            UV = '{0:.3f}'.format(int((cal[18:20] + cal[16:18]), 16) / (100*0.388))
+            AmbientLight = '{0:.3f}'.format(int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928))
+            print(self.alpsid, ':Pressure:', Pressure, ' Humidity:', Humidity, ' Temperature:', Temperature)
+            self.cli.publish(topicdop+str(self.alpsid)+'/PRES', Pressure)
+            self.cli.publish(topicdop+str(self.alpsid)+'/HUMID', Humidity)
+            self.cli.publish(topicdop+str(self.alpsid)+'/TEMP', Temperature)
+            print(self.alpsid, ':UV:', UV, ' AmbientLight:', AmbientLight)
+            self.cli.publish(topicdop+str(self.alpsid)+'/UV', UV)
+            self.cli.publish(topicdop+str(self.alpsid)+'/ILLUMI', AmbientLight)
             vpres[self.alpsid] =  Pressure
             vhumid[self.alpsid] = Humidity
             vtemp[self.alpsid] = Temperature
@@ -138,7 +273,11 @@ async def main():
     addr = mac.hex[-12:]
     print('Client ID='+addr)
     client = gmqtt.Client(addr) # default is MQTTv5, Client ID is required
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    client.on_message = on_message
     await client.connect(host, port, keepalive=60)
+    client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
     print('ALPS setup')
     alpsarray = []
     n = 1
