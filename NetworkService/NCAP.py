@@ -61,8 +61,8 @@ topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc'] # subscribe
 topicd0opres = confdata['spfx']+confdata['tomd0op']+confdata['locclient'] # publish
 #'_1451.1.6(SPFX)/D0(TOM)/LOC'
 subscriptor = [
-            gmqtt.Subscription(topiccop, qos=0), gmqtt.Subscription(topicd0op, qos=0)
-        ]
+    gmqtt.Subscription(topiccop, qos=0), gmqtt.Subscription(topicd0op, qos=0)
+]
 
 vgeomagx = {}
 vgeomagy = {}
@@ -75,6 +75,38 @@ vhumid = {}
 vtemp = {}
 vuv = {}
 villumi = {}
+
+binblk_read = {
+    'netSvcType'        : {'offset': 0,  'type': '<B'},
+    'netSvcID'          : {'offset': 1,  'type': '<B'},
+    'msgType'           : {'offset': 2,  'type': '<B'},
+    'msgLength'         : {'offset': 3,  'type': '<H'},
+    'ncapId'            : {'offset': 5,  'type': '<10s'},
+    'timId'             : {'offset': 10, 'type': '<10s'},
+    'ChannelId'         : {'offset': 11, 'type': '<H'},
+    'timeout'           : {'offset': 13, 'type': '<8p'},
+    'samplingMode'      : {'offset': 23, 'type': '<H'},
+    'discoveryId'       : {'offset': 25, 'type': '<10p'},
+}
+
+binblk_teds = {
+    'netSvcType'        : {'offset': 0,  'type': '<B'},
+    'netSvcID'          : {'offset': 1,  'type': '<B'},
+    'msgType'           : {'offset': 2,  'type': '<B'},
+    'msgLength'         : {'offset': 3,  'type': '<H'},
+    'ncapId'            : {'offset': 5,  'type': '<10s'},
+    'timId'             : {'offset': 15, 'type': '<10s'},
+    'ChannelId'         : {'offset': 25, 'type': '<H'},
+    'cmdClassid'        : {'offset': 27, 'type': '<B'},
+    'cmdFunctionId'     : {'offset': 28, 'type': '<B'},
+    'tedsAccessCode'    : {'offset': 29, 'type': '<B'},
+    'tedsOffset'        : {'offset': 30, 'type': '<I'},
+    'discoveryId'       : {'offset': 34, 'type': '<10s'},
+    'rawTEDSBlock'      : {'offset': 44, 'type': '<65536s'},
+}
+
+uuid0 = '0x00000000000000000000'
+uuid1 = '0x00000000000000000001'
  
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
@@ -108,40 +140,40 @@ def on_message(client, topic, payload, qos, properties):
                 print('timeout', mline[7])
                 print('samplingMode', mline[8])
                 print('discoverlyId', mline[9])
-                if mline[4] == '0x00000000':
-                    if mline[9] == '0x00000001':
+                if mline[4] == uuid0: # short[5]
+                    if mline[9] == uuid1:
                         if mline[5] == 0:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vtemp[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
                             print("Read TEMP")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vhumid[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vhumid[mline[6]]+',0,'+uuid1)
                             print("Read HUMID")
                         elif mline[5] == 2:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vuv[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vuv[mline[6]]+',0,'+uuid1)
                             print("Read UV")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+villumi[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+villumi[mline[6]]+',0,'+uuid1)
                             print("Read ILLUMI")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vpress[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vpress[mline[6]]+',0,'+uuid1)
                             print("Read PRESS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagx[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagx[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGX")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagy[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagy[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGY")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vgeomagz[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagz[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGZ")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccelx[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelx[mline[6]]+',0,'+uuid1)
                             print("Read ACCELX")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccely[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccely[mline[6]]+',0,'+uuid1)
                             print("Read ACCELY")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '2,1,2,0,0,0x00000000,0x00000000,0,'+vaccelz[mline[6]]+',0,0x00000001')
+                            client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelz[mline[6]]+',0,'+uuid1)
                             print("Read ACCELZ")
                         else:
                             print("timId Error")
@@ -161,40 +193,40 @@ def on_message(client, topic, payload, qos, properties):
                 print('tedsOffset', mline[10])
                 print('timeout', mline[11])
                 print('discoverlyId', mline[12])
-                if mline[4] == '0x00000000':
+                if mline[4] == 'uuid0':
                     if mline[12] == '0x00000001':
                         if mline[5] == 0:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
                             print("Read TEMP TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
                             print("Read HUMID TEDS")
                         elif mline[5] == 2:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'UV_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'UV_TEDS')
                             print("Read UV TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
                             print("Read ILLUMI TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
                             print("Read PRESS TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
                             print("Read GEOMAGX TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
                             print("Read GEOMAGY TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
                             print("Read GEOMAGZ TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
                             print("Read ACCELX TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
                             print("Read ACCELY TEDS")
                         elif mline[5] == 1:
-                            client.publish(topiccopres, '3,2,2,0,0,0x00000000,0x00000000,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
+                            client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
                             print("Read ACCELZ TEDS")
                         else:
                             print("timId Error")
@@ -203,7 +235,96 @@ def on_message(client, topic, payload, qos, properties):
                 else:
                     print("ncapId Error")
     elif stopic[1] == 'D0':
-        print("Unsupported Error")
+        if struct.unpack('>BBB', msg) == b'\x02\x01\x01':
+            for k, v in binblk_read.items():
+                t_offset = v['offset']
+                mline[k] = struct.unpack_from(v['type'], data, t_offset)
+            if mline[4] == uuid0: # short[5]
+                if mline[9] == uuid1:
+                    if mline[5] == 0:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
+                        print("Read TEMP")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vhumid[mline[6]]+',0,'+uuid1)
+                        print("Read HUMID")
+                    elif mline[5] == 2:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vuv[mline[6]]+',0,'+uuid1)
+                        print("Read UV")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+villumi[mline[6]]+',0,'+uuid1)
+                        print("Read ILLUMI")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vpress[mline[6]]+',0,'+uuid1)
+                        print("Read PRESS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagx[mline[6]]+',0,'+uuid1)
+                        print("Read GEOMAGX")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagy[mline[6]]+',0,'+uuid1)
+                        print("Read GEOMAGY")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagz[mline[6]]+',0,'+uuid1)
+                        print("Read GEOMAGZ")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelx[mline[6]]+',0,'+uuid1)
+                        print("Read ACCELX")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccely[mline[6]]+',0,'+uuid1)
+                        print("Read ACCELY")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelz[mline[6]]+',0,'+uuid1)
+                        print("Read ACCELZ")
+                    else:
+                        print("timId Error")
+                else:
+                    print("discoverlyId Error")
+            else:
+                print("ncapId Error")
+        elif struct.unpack('>BBB', msg) == b'\x03\x02\x01':
+            for k, v in binblk_teds.items():
+                t_offset = v['offset']
+                mline[k] = struct.unpack_from(v['type'], data, t_offset)
+            if mline[4] == 'uuid0':
+                if mline[12] == '0x00000001':
+                    if mline[5] == 0:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
+                        print("Read TEMP TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
+                        print("Read HUMID TEDS")
+                    elif mline[5] == 2:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'UV_TEDS')
+                        print("Read UV TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
+                        print("Read ILLUMI TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
+                        print("Read PRESS TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
+                        print("Read GEOMAGX TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
+                        print("Read GEOMAGY TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
+                        print("Read GEOMAGZ TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
+                        print("Read ACCELX TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
+                        print("Read ACCELY TEDS")
+                    elif mline[5] == 1:
+                        client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
+                        print("Read ACCELZ TEDS")
+                    else:
+                        print("timId Error")
+                else:
+                    print("discoverlyId Error")
+            else:
+                print("ncapId Error")
     else:
         print("Type of Message Error")
 
