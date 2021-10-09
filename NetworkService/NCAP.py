@@ -51,8 +51,22 @@ host = confdata['mqtthost']
 #'192.168.0.10'
 port = int(confdata['mqttport'])
 #1883
-topic = confdata['topic']+confdata['sensortopic']
-#'/PRISM/SENSOR/'
+topicdop = confdata['spfx']+confdata['tomdop']+confdata['loc']
+topiccop = confdata['spfx']+confdata['tomcop']+confdata['loc']
+topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc']
+#'_1451.1.6(SPFX)/D0(TOM)/LOC'
+
+vgeomagx = {}
+vgeomagy = {}
+vgeomagz = {}
+vaccelx = {}
+vaccely = {}
+vaccelz = {}
+vpres = {}
+vhumid = {}
+vtemp = {}
+vuv = {}
+villumi = {}
  
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
@@ -73,19 +87,23 @@ class NtfyDelegate(btle.DefaultDelegate):
             GeoMagnetic_X = s16(int((cal[6:8] + cal[4:6]), 16)) * 0.15
             GeoMagnetic_Y = s16(int((cal[10:12] + cal[8:10]), 16)) * 0.15
             GeoMagnetic_Z = s16(int((cal[14:16] + cal[12:14]), 16)) * 0.15
+            vgeomagx[self.alpsid] = GeoMagnetic_X
+            vgeomagy[self.alpsid] = GeoMagnetic_Y
+            vgeomagz[self.alpsid] = GeoMagnetic_Z
             print(self.alpsid, ':Geo-Magnetic X:{0:.3f} Y:{1:.3f} Z:{2:.3f}'.format(GeoMagnetic_X, GeoMagnetic_Y, GeoMagnetic_Z))
-            self.cli.publish(topic+str(self.alpsid)+'/GEOMAGX', '{0:.3f}'.format(GeoMagnetic_X))
-            self.cli.publish(topic+str(self.alpsid)+'/GEOMAGY', '{0:.3f}'.format(GeoMagnetic_Y))
-            self.cli.publish(topic+str(self.alpsid)+'/GEOMAGZ', '{0:.3f}'.format(GeoMagnetic_Z))
-
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGX', '{0:.3f}'.format(GeoMagnetic_X))
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGY', '{0:.3f}'.format(GeoMagnetic_Y))
+            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', '{0:.3f}'.format(GeoMagnetic_Z))
             Acceleration_X = 1.0 * s16(int((cal[18:20] + cal[16:18]), 16)) / 1024
             Acceleration_Y = 1.0 * s16(int((cal[22:24] + cal[20:22]), 16)) / 1024
             Acceleration_Z = 1.0 * s16(int((cal[26:28] + cal[24:26]), 16)) / 1024
+            vaccelx[self.alpsid] = Acceleration_X
+            vaccely[self.alpsid] = Acceleration_Y
+            vaccelz[self.alpsid] = Acceleration_Z
             print(self.alpsid, ':Acceleration X:{0:.3f} Y:{1:.3f} Z:{2:.3f}'.format(Acceleration_X, Acceleration_Y, Acceleration_Z))
-            self.cli.publish(topic+str(self.alpsid)+'/ACCELX', '{0:.3f}'.format(Acceleration_X))
-            self.cli.publish(topic+str(self.alpsid)+'/ACCELY', '{0:.3f}'.format(Acceleration_Y))
-            self.cli.publish(topic+str(self.alpsid)+'/ACCELZ', '{0:.3f}'.format(Acceleration_Z))
-
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELX', '{0:.3f}'.format(Acceleration_X))
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELY', '{0:.3f}'.format(Acceleration_Y))
+            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELZ', '{0:.3f}'.format(Acceleration_Z))
         if int((cal[0:2]), 16) == 0xf3:
             Pressure = int((cal[6:8] + cal[4:6]), 16) * 860.0/65535 + 250	
             Humidity = 1.0 * (int((cal[10:12] + cal[8:10]), 16) - 896 )/64
@@ -93,12 +111,17 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             print(self.alpsid, ':Pressure:{0:.3f} Humidity:{1:.3f} Temperature:{2:.3f} '.format(Pressure, Humidity , Temperature))
-            self.cli.publish(topic+str(self.alpsid)+'/PRES', '{0:.3f}'.format(Pressure))
-            self.cli.publish(topic+str(self.alpsid)+'/HUMID', '{0:.3f}'.format(Humidity))
-            self.cli.publish(topic+str(self.alpsid)+'/TEMP', '{0:.3f}'.format(Temperature))
+            self.cli.publish(topicdop+str(self.alpsid)+'/PRES', '{0:.3f}'.format(Pressure))
+            self.cli.publish(topicdop+str(self.alpsid)+'/HUMID', '{0:.3f}'.format(Humidity))
+            self.cli.publish(topicdop+str(self.alpsid)+'/TEMP', '{0:.3f}'.format(Temperature))
             print(self.alpsid, ':UV:{0:.3f} AmbientLight:{1:.3f} '.format(UV, AmbientLight))
-            self.cli.publish(topic+str(self.alpsid)+'/UV', '{0:.3f}'.format(UV))
-            self.cli.publish(topic+str(self.alpsid)+'/ILLUMI', '{0:.3f}'.format(AmbientLight))
+            self.cli.publish(topicdop+str(self.alpsid)+'/UV', '{0:.3f}'.format(UV))
+            self.cli.publish(topicdop+str(self.alpsid)+'/ILLUMI', '{0:.3f}'.format(AmbientLight))
+            vpres[self.alpsid] =  Pressure
+            vhumid[self.alpsid] = Humidity
+            vtemp[self.alpsid] = Temperature
+            vuv[self.alpsid] = UV
+            villumi[self.alpsid] = AmbientLight
  
 class AlpsSensor(Peripheral):
     def __init__(self, addr):

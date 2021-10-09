@@ -1,0 +1,6 @@
+The applications in this folder can be executed as Raspberry-Pi OS binary of ARM architecture. Note that you have to prepare Raspberry-Pi with Raspberry-Pi OS, and set up this environment.
+
+1. NCAP.py accepts to call directly as ./NACP.py
+2. NCAP.py has several commandline options. The most useful option is -c
+	You can specify your own config_file_name as NCAP.py -c confing_file_name
+	ex) ./NCAP.py -c ../myconfig.yml
