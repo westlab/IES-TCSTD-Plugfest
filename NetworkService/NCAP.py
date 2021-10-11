@@ -16,7 +16,7 @@ import csv
 import pprint
 
 parser = argparse.ArgumentParser(
-    prog = 'alpsmqtt.py',
+    prog = 'NCAP.py',
     usage = 'Receive BLE sensor data and send to MQTT server',
     description= 'PRISM demo for ALPS Smart IoT BLE Sensor module\nYou have to install and Bluetooth modules',
     epilog = 'Programmer: Hiroaki Nishi west@west.yokohama',
@@ -151,28 +151,28 @@ def on_message(client, topic, payload, qos, properties):
                         elif mline[5] == 2:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vuv[mline[6]]+',0,'+uuid1)
                             print("Read UV")
-                        elif mline[5] == 1:
+                        elif mline[5] == 3:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+villumi[mline[6]]+',0,'+uuid1)
                             print("Read ILLUMI")
-                        elif mline[5] == 1:
+                        elif mline[5] == 4:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vpress[mline[6]]+',0,'+uuid1)
                             print("Read PRESS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 5:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagx[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGX")
-                        elif mline[5] == 1:
+                        elif mline[5] == 6:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagy[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGY")
-                        elif mline[5] == 1:
+                        elif mline[5] == 7:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagz[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGZ")
-                        elif mline[5] == 1:
+                        elif mline[5] == 8:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelx[mline[6]]+',0,'+uuid1)
                             print("Read ACCELX")
-                        elif mline[5] == 1:
+                        elif mline[5] == 9:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccely[mline[6]]+',0,'+uuid1)
                             print("Read ACCELY")
-                        elif mline[5] == 1:
+                        elif mline[5] == 10:
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelz[mline[6]]+',0,'+uuid1)
                             print("Read ACCELZ")
                         else:
@@ -204,28 +204,28 @@ def on_message(client, topic, payload, qos, properties):
                         elif mline[5] == 2:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'UV_TEDS')
                             print("Read UV TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 3:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
                             print("Read ILLUMI TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 4:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
                             print("Read PRESS TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 5:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
                             print("Read GEOMAGX TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 6:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
                             print("Read GEOMAGY TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 7:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
                             print("Read GEOMAGZ TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 8:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
                             print("Read ACCELX TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 9:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
                             print("Read ACCELY TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == 10:
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
                             print("Read ACCELZ TEDS")
                         else:
