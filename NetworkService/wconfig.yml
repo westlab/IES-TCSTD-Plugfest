@@ -1,6 +1,6 @@
 #mqtthost: 192.168.0.10
-#mqtthost: 10.24.69.200
-mqtthost: 10.1.5.60
+mqtthost: 10.24.69.200
+#mqtthost: 10.1.5.60
 mqttport: 1883
 # needs / in the end
 spfx: _1451.1.6/
@@ -16,8 +16,8 @@ reqtopic: NCAP/1451OPE
 restopic: SERVICE/1451RES
 #username: iesstd        not for MQTTv5
 #password: 1451Plugfest        not for MQTTv5
-alpsmodule1: 48:F0:7B:78:47:46
-#alpsmodule2: 48:F0:7B:78:47:4B
+##alpsmodule1: 48:F0:7B:78:47:46
+alpsmodule1: 48:F0:7B:78:47:4B
 #alpsmodule3: 48:F0:7B:78:47:4C
 #alpsmodule4: 48:F0:7B:78:47:25
 #alpsmodule5: 48:F0:7B:78:47:33

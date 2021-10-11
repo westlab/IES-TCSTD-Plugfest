@@ -392,12 +392,15 @@ async def main():
     node = uuid.getnode()
     mac = uuid.UUID(int=node)
     addr = mac.hex[-12:]
-    print('Client ID='+addr)
+    print(' - Client ID='+addr)
     client = gmqtt.Client(addr) # default is MQTTv5, Client ID is required
+    print(' - set callbacks')
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.on_message = on_message
+    print(' - connect', host, port)
     await client.connect(host, port, keepalive=60)
+    print(' - subscribe')
     client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
     print('ALPS setup')
     alpsarray = []
@@ -406,14 +409,18 @@ async def main():
         keyname = 'alpsmodule'+str(n)
         if keyname in confdata:
             if confdata[keyname] is not None:
-                print("No.%d : %s" % (n, confdata[keyname]))
                 alpsarray.append(AlpsSensor(confdata[keyname]))
+                print(" - No.%d : %s added" % (n, confdata[keyname]))
             n += 1
         else:
             break
+    if n == 1:
+        print('Cannot find alpsmodule1 in your configuration file.')
+        sys.exit()
+    print('ALPS module ready')
     for i,a in enumerate(alpsarray):
         a.setDelegate( NtfyDelegate(btle.DefaultDelegate, i+1, client) )
-        print("node:",i+1)
+        print("Node:",i+1)
  
         #Hybrid MAG ACC8G　100ms　/ Other 1s
         # code - meaning
@@ -460,6 +467,7 @@ async def main():
         # センサ計測開始
          
     # Main loop --------
+    print('Notification wait')
     while True:
         for i,a in enumerate(alpsarray):
             if a.waitForNotifications(1.0):
