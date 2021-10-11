@@ -82,11 +82,11 @@ binblk_read = {
     'msgType'           : {'offset': 2,  'type': '<B'},
     'msgLength'         : {'offset': 3,  'type': '<H'},
     'ncapId'            : {'offset': 5,  'type': '<10s'},
-    'timId'             : {'offset': 10, 'type': '<10s'},
-    'ChannelId'         : {'offset': 11, 'type': '<H'},
-    'timeout'           : {'offset': 13, 'type': '<8p'},
-    'samplingMode'      : {'offset': 23, 'type': '<H'},
-    'discoveryId'       : {'offset': 25, 'type': '<10p'},
+    'timId'             : {'offset': 15, 'type': '<8s'},
+    'ChannelId'         : {'offset': 23, 'type': '<H'},
+    'timeout'           : {'offset': 25, 'type': '<8p'},
+    'samplingMode'      : {'offset': 33, 'type': '<H'},
+    'discoveryId'       : {'offset': 35, 'type': '<10p'},
 }
 
 binblk_teds = {
@@ -95,14 +95,14 @@ binblk_teds = {
     'msgType'           : {'offset': 2,  'type': '<B'},
     'msgLength'         : {'offset': 3,  'type': '<H'},
     'ncapId'            : {'offset': 5,  'type': '<10s'},
-    'timId'             : {'offset': 15, 'type': '<10s'},
-    'ChannelId'         : {'offset': 25, 'type': '<H'},
-    'cmdClassid'        : {'offset': 27, 'type': '<B'},
-    'cmdFunctionId'     : {'offset': 28, 'type': '<B'},
-    'tedsAccessCode'    : {'offset': 29, 'type': '<B'},
-    'tedsOffset'        : {'offset': 30, 'type': '<I'},
-    'discoveryId'       : {'offset': 34, 'type': '<10s'},
-    'rawTEDSBlock'      : {'offset': 44, 'type': '<65536s'},
+    'timId'             : {'offset': 15, 'type': '<8s'},
+    'ChannelId'         : {'offset': 23, 'type': '<H'},
+    'cmdClassid'        : {'offset': 25, 'type': '<B'},
+    'cmdFunctionId'     : {'offset': 26, 'type': '<B'},
+    'tedsAccessCode'    : {'offset': 27, 'type': '<B'},
+    'tedsOffset'        : {'offset': 38, 'type': '<I'},
+    'discoveryId'       : {'offset': 46, 'type': '<10s'},
+    'rawTEDSBlock'      : {'offset': 56, 'type': '<65536s'},
 }
 
 uuid0 = '0x00000000000000000000'
