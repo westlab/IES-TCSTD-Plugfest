@@ -35,7 +35,7 @@ parser.add_argument('-q', '--quiet',
 parser.add_argument('-c', '--config',
     action = 'store',
     help = 'specify YAML config file',
-    default = '../config.yml',
+    default = './config.yml',
     type = str)
 
 args = parser.parse_args()
@@ -107,7 +107,14 @@ binblk_teds = {
 
 uuid0 = '0x00000000000000000000'
 uuid1 = '0x00000000000000000001'
- 
+# big endian (MSB first)
+buuid0 = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
+buuid1 = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1])
+bncapid = bytearray([0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
+btimid = bytearray([0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
+bnull = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]);
+# string left char str, 0x0 end
+
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
 
@@ -235,47 +242,45 @@ def on_message(client, topic, payload, qos, properties):
                 else:
                     print("ncapId Error")
     elif stopic[1] == 'D0':
-        sbp = bytearray([0x2, 0x1, 0x2, 0x0, 0x0])
-        buuid0 = int(uuid0, 16).to_bytes(4, byteorder='little')
-        buuid1 = int(uuid1, 16).to_bytes(4, byteorder='little')
         if struct.unpack('>BBB', msg) == b'\x02\x01\x01':
             for k, v in binblk_read.items():
                 t_offset = v['offset']
                 mline[k] = struct.unpack_from(v['type'], data, t_offset)
             if mline[4] == uuid0: # short[5]
+                sbp = bytearray([0x2, 0x1, 0x2, 0x0, 0x0])
                 if mline[9] == uuid1:
                     if mline[5] == 0:
-                        client.publish(topiccopres, sbp+'2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vtemp[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read TEMP")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vhumid[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vhumid[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read HUMID")
                     elif mline[5] == 2:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vuv[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vub[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read UV")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+villumi[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(villumi[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read ILLUMI")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vpress[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vpress[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read PRESS")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagx[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vgeomagx[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read GEOMAGX")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagy[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vgeomagy[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read GEOMAGY")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagz[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vgeomagz[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read GEOMAGZ")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelx[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vaccelx[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read ACCELX")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccely[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vaccely[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read ACCELY")
                     elif mline[5] == 1:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelz[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+(vaccelz[mline[6]]+bnull)[0:5]+b'0'+buuid1)
                         print("Read ACCELZ")
                     else:
                         print("timId Error")
@@ -288,11 +293,14 @@ def on_message(client, topic, payload, qos, properties):
                 t_offset = v['offset']
                 mline[k] = struct.unpack_from(v['type'], data, t_offset)
             if mline[4] == 'uuid0':
+                sbp = bytearray([0x3, 0x2, 0x2, 0x0, 0x0])
                 if mline[12] == '0x00000001':
                     if mline[5] == 0:
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+mline[6]+b'0'+buuid1)
                         client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
                         print("Read TEMP TEDS")
                     elif mline[5] == 1:
+                        client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+mline[6]+b'0'+buuid1)
                         client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
                         print("Read HUMID TEDS")
                     elif mline[5] == 2:
