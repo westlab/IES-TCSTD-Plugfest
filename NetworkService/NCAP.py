@@ -235,6 +235,9 @@ def on_message(client, topic, payload, qos, properties):
                 else:
                     print("ncapId Error")
     elif stopic[1] == 'D0':
+        sbp = bytearray([0x2, 0x1, 0x2, 0x0, 0x0])
+        buuid0 = int(uuid0, 16).to_bytes(4, byteorder='little')
+        buuid1 = int(uuid1, 16).to_bytes(4, byteorder='little')
         if struct.unpack('>BBB', msg) == b'\x02\x01\x01':
             for k, v in binblk_read.items():
                 t_offset = v['offset']
@@ -242,7 +245,7 @@ def on_message(client, topic, payload, qos, properties):
             if mline[4] == uuid0: # short[5]
                 if mline[9] == uuid1:
                     if mline[5] == 0:
-                        client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
+                        client.publish(topiccopres, sbp+'2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
                         print("Read TEMP")
                     elif mline[5] == 1:
                         client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vhumid[mline[6]]+',0,'+uuid1)

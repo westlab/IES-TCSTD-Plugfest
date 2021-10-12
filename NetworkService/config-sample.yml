@@ -1,6 +1,6 @@
 #mqtthost: 192.168.0.10
-mqtthost: 10.24.69.200
-#mqtthost: 10.1.5.60
+#mqtthost: 10.24.69.200
+mqtthost: 10.1.5.70
 mqttport: 1883
 # needs / in the end
 spfx: _1451.1.6/
