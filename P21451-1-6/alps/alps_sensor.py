@@ -46,7 +46,7 @@ class AlpsSensor(Peripheral):
  
 
 def main():
-    alps = AlpsSensor("48:F0:7B:78:47:30")
+    alps = AlpsSensor("48:F0:7B:78:47:4C")
     alps.setDelegate( NtfyDelegate(btle.DefaultDelegate) )
  
     #Hybrid MAG ACC8G　100ms　/ Other 1s
