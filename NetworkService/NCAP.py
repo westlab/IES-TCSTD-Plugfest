@@ -14,6 +14,7 @@ import uuid
 import io
 import csv
 import pprint
+import time
 
 parser = argparse.ArgumentParser(
     prog = 'NCAP.py',
@@ -54,7 +55,7 @@ host = confdata['mqtthost']
 #'192.168.0.10'
 port = int(confdata['mqttport'])
 #1883
-topicdop = confdata['spfx']+confdata['tomdop']+confdata['loc'] # publish
+topicdop = confdata['spfx']+confdata['tomdop']+confdata['loc']+'/' # publish
 topiccop = confdata['spfx']+confdata['tomcop']+confdata['loc'] # subscribe
 topiccopres = confdata['spfx']+confdata['tomcop']+confdata['locclient'] # publish
 topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc'] # subscribe
@@ -62,10 +63,10 @@ topicd0opres = confdata['spfx']+confdata['tomd0op']+confdata['locclient'] # publ
 #'_1451.1.6(SPFX)/D0(TOM)/LOC'
 pprint.pprint([topiccop, topicd0op])
 #subscriptor = [
-#    gmqtt.Subscription(topiccop, qos=1), gmqtt.Subscription(topicd0op, qos=2)
+#    gmqtt.Subscription(topiccop, qos=2), gmqtt.Subscription(topicd0op, qos=2)
 #]
 subscriptor = [
-    gmqtt.Subscription('#', qos=1)
+    gmqtt.Subscription('#', qos=2)
 ]
 
 vgeomagx = {}
@@ -115,8 +116,8 @@ uuid1 = '0x00000000000000000001'
 buuid0 = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
 buuid1 = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1])
 bncapid = bytearray([0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
-btimid = bytearray([0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
-bnull = bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]);
+btimid = bytearray([0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0])
+bnull = bytearray([0x0, 0x0, 0x0, 0x0, 0x0]);
 # string left char str, 0x0 end
 
 def s16(value):
@@ -124,14 +125,12 @@ def s16(value):
 
 def on_connect(client, flags, rc, properties):
     print('[CONNECTED {}]'.format(client._client_id))
-    print(' - subscribe')
-#    client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
-    client.subscribe('#', qos=1)
 
 def on_disconnect(client, packet, exc=None):
     print('[DISCONNECTED {}]'.format(client._client_id))
 
 def on_subscribe(client, mid, qos, properties):
+    print('on subscribe')
     print('[SUBCRIBED {} MID: {} QOS: {} PROPERTIES: {}]'.format(client._client_id, mid, qos, properties))
 
 def on_message(client, topic, payload, qos, properties):
@@ -159,37 +158,37 @@ def on_message(client, topic, payload, qos, properties):
                 print('discoverlyId', mline[9])
                 if mline[4] == uuid0: # short[5]
                     if mline[9] == uuid1:
-                        if mline[5] == 0:
+                        if mline[5] == '0x0000000000000000':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vtemp[mline[6]]+',0,'+uuid1)
                             print("Read TEMP")
-                        elif mline[5] == 1:
+                        if mline[5] == '0x0000000000000001':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vhumid[mline[6]]+',0,'+uuid1)
                             print("Read HUMID")
-                        elif mline[5] == 2:
+                        if mline[5] == '0x0000000000000002':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vuv[mline[6]]+',0,'+uuid1)
                             print("Read UV")
-                        elif mline[5] == 3:
+                        if mline[5] == '0x0000000000000003':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+villumi[mline[6]]+',0,'+uuid1)
                             print("Read ILLUMI")
-                        elif mline[5] == 4:
+                        if mline[5] == '0x0000000000000004':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vpress[mline[6]]+',0,'+uuid1)
                             print("Read PRESS")
-                        elif mline[5] == 5:
+                        if mline[5] == '0x0000000000000005':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagx[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGX")
-                        elif mline[5] == 6:
+                        if mline[5] == '0x0000000000000006':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagy[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGY")
-                        elif mline[5] == 7:
+                        if mline[5] == '0x0000000000000007':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vgeomagz[mline[6]]+',0,'+uuid1)
                             print("Read GEOMAGZ")
-                        elif mline[5] == 8:
+                        if mline[5] == '0x0000000000000008':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelx[mline[6]]+',0,'+uuid1)
                             print("Read ACCELX")
-                        elif mline[5] == 9:
+                        if mline[5] == '0x0000000000000009':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccely[mline[6]]+',0,'+uuid1)
                             print("Read ACCELY")
-                        elif mline[5] == 10:
+                        if mline[5] == '0x000000000000000a':
                             client.publish(topiccopres, '2,1,2,0,0,uuid0,uuid0,0,'+vaccelz[mline[6]]+',0,'+uuid1)
                             print("Read ACCELZ")
                         else:
@@ -210,39 +209,39 @@ def on_message(client, topic, payload, qos, properties):
                 print('tedsOffset', mline[10])
                 print('timeout', mline[11])
                 print('discoverlyId', mline[12])
-                if mline[4] == 'uuid0':
-                    if mline[12] == '0x00000001':
-                        if mline[5] == 0:
+                if mline[4] == uuid0:
+                    if mline[12] == uuid1:
+                        if mline[5] == '0x0000000000000000':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
                             print("Read TEMP TEDS")
-                        elif mline[5] == 1:
+                        elif mline[5] == '0x0000000000000001':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'HUMID_TEDS')
                             print("Read HUMID TEDS")
-                        elif mline[5] == 2:
+                        elif mline[5] == '0x0000000000000002':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'UV_TEDS')
                             print("Read UV TEDS")
-                        elif mline[5] == 3:
+                        elif mline[5] == '0x0000000000000003':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ILLUMI_TEDS')
                             print("Read ILLUMI TEDS")
-                        elif mline[5] == 4:
+                        elif mline[5] == '0x0000000000000004':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'PRESS_TEDS')
                             print("Read PRESS TEDS")
-                        elif mline[5] == 5:
+                        elif mline[5] == '0x0000000000000005':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGX_TEDS')
                             print("Read GEOMAGX TEDS")
-                        elif mline[5] == 6:
+                        elif mline[5] == '0x0000000000000006':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGY_TEDS')
                             print("Read GEOMAGY TEDS")
-                        elif mline[5] == 7:
+                        elif mline[5] == '0x0000000000000007':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'GEOMAGZ_TEDS')
                             print("Read GEOMAGZ TEDS")
-                        elif mline[5] == 8:
+                        elif mline[5] == '0x0000000000000008':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELX_TEDS')
                             print("Read ACCELX TEDS")
-                        elif mline[5] == 9:
+                        elif mline[5] == '0x0000000000000009':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELY_TEDS')
                             print("Read ACCELY TEDS")
-                        elif mline[5] == 10:
+                        elif mline[5] == '0x000000000000000a':
                             client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'ACCELZ_TEDS')
                             print("Read ACCELZ TEDS")
                         else:
@@ -304,7 +303,7 @@ def on_message(client, topic, payload, qos, properties):
                 mline[k] = struct.unpack_from(v['type'], data, t_offset)
             if mline[4] == 'uuid0':
                 sbp = bytearray([0x3, 0x2, 0x2, 0x0, 0x0])
-                if mline[12] == '0x00000001':
+                if mline[12] == uuid1:
                     if mline[5] == 0:
                         client.publish(topiccopres, sbp+buuid0+buuid0+b'0'+mline[6]+b'0'+buuid1)
                         client.publish(topiccopres, '3,2,2,0,0,uuid0,uuid0,0,'+mline[6]+','+mline[10]+'TEMP_TEDS')
@@ -350,12 +349,12 @@ def on_message(client, topic, payload, qos, properties):
         print("Type of Message Error")
 
 class NtfyDelegate(btle.DefaultDelegate):
-    def __init__(self, params, alpsid, cli):
+    def __init__(self, params, alpsid, client):
         btle.DefaultDelegate.__init__(self)
         self.alpsid = alpsid
-        self.cli = cli
+        self.client = client
         # ... initialise here
-    def handleNotification(self, cHandle, data): 
+    def handleNotification(self, cHandle, data):
         # ... perhaps check cHandle
         # ... process 'data'
         cal = binascii.b2a_hex(data)
@@ -368,9 +367,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             vgeomagy[self.alpsid] = GeoMagnetic_Y
             vgeomagz[self.alpsid] = GeoMagnetic_Z
             print(self.alpsid, ':Geo-Magnetic X:', GeoMagnetic_X, ' Y:', GeoMagnetic_Y, ' Z:', GeoMagnetic_Z)
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGX', GeoMagnetic_X)
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGY', GeoMagnetic_Y)
-            self.cli.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', GeoMagnetic_Z)
+            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGX', GeoMagnetic_X)
+            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGY', GeoMagnetic_Y)
+            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', GeoMagnetic_Z)
             Acceleration_X = '{0:.3f}'.format(1.0 * s16(int((cal[18:20] + cal[16:18]), 16)) / 1024)
             Acceleration_Y = '{0:.3f}'.format(1.0 * s16(int((cal[22:24] + cal[20:22]), 16)) / 1024)
             Acceleration_Z = '{0:.3f}'.format(1.0 * s16(int((cal[26:28] + cal[24:26]), 16)) / 1024)
@@ -378,9 +377,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             vaccely[self.alpsid] = Acceleration_Y
             vaccelz[self.alpsid] = Acceleration_Z
             print(self.alpsid, ':Acceleration X:', Acceleration_X, ' Y:', Acceleration_Y, ' Z:', Acceleration_Z)
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELX', Acceleration_X)
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELY', Acceleration_Y)
-            self.cli.publish(topicdop+str(self.alpsid)+'/ACCELZ', Acceleration_Z)
+            self.client.publish(topicdop+str(self.alpsid)+'/ACCELX', Acceleration_X)
+            self.client.publish(topicdop+str(self.alpsid)+'/ACCELY', Acceleration_Y)
+            self.client.publish(topicdop+str(self.alpsid)+'/ACCELZ', Acceleration_Z)
         if int((cal[0:2]), 16) == 0xf3:
             Pressure = '{0:.3f}'.format(int((cal[6:8] + cal[4:6]), 16) * 860.0/65535 + 250)
             Humidity = '{0:.3f}'.format(1.0 * (int((cal[10:12] + cal[8:10]), 16) - 896 )/64)
@@ -388,12 +387,12 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = '{0:.3f}'.format(int((cal[18:20] + cal[16:18]), 16) / (100*0.388))
             AmbientLight = '{0:.3f}'.format(int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928))
             print(self.alpsid, ':Pressure:', Pressure, ' Humidity:', Humidity, ' Temperature:', Temperature)
-            self.cli.publish(topicdop+str(self.alpsid)+'/PRES', Pressure)
-            self.cli.publish(topicdop+str(self.alpsid)+'/HUMID', Humidity)
-            self.cli.publish(topicdop+str(self.alpsid)+'/TEMP', Temperature)
+            self.client.publish(topicdop+str(self.alpsid)+'/PRES', Pressure)
+            self.client.publish(topicdop+str(self.alpsid)+'/HUMID', Humidity)
+            self.client.publish(topicdop+str(self.alpsid)+'/TEMP', Temperature)
             print(self.alpsid, ':UV:', UV, ' AmbientLight:', AmbientLight)
-            self.cli.publish(topicdop+str(self.alpsid)+'/UV', UV)
-            self.cli.publish(topicdop+str(self.alpsid)+'/ILLUMI', AmbientLight)
+            self.client.publish(topicdop+str(self.alpsid)+'/UV', UV)
+            self.client.publish(topicdop+str(self.alpsid)+'/ILLUMI', AmbientLight)
             vpres[self.alpsid] =  Pressure
             vhumid[self.alpsid] = Humidity
             vtemp[self.alpsid] = Temperature
@@ -405,22 +404,9 @@ class AlpsSensor(Peripheral):
         Peripheral.__init__(self, addr)
         self.result = 1
 
-async def main():
-    print('start')
-    if sys.version_info[0] != 3: 
-        print("Version 3 is required") 
-    print('MQTT setup')
-    node = uuid.getnode()
-    mac = uuid.UUID(int=node)
-    addr = mac.hex[-12:]
-    print(' - Client ID='+addr)
-    client = gmqtt.Client(addr) # default is MQTTv5, Client ID is required
-    print(' - set callbacks')
-    client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
-    client.on_subscribe = on_subscribe
-    client.on_message = on_message
-    print(' - connect', host, port)
+async def alpsmain(client):
+    print("ALPS", client)
+    print(' - alps connect', host, port)
     await client.connect(host, port, keepalive=60)
     print('ALPS setup')
     alpsarray = []
@@ -441,7 +427,7 @@ async def main():
     for i,a in enumerate(alpsarray):
         a.setDelegate( NtfyDelegate(btle.DefaultDelegate, i+1, client) )
         print("Node:",i+1)
- 
+
         #Hybrid MAG ACC8G　100ms　/ Other 1s
         # code - meaning
         a.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)
@@ -485,7 +471,6 @@ async def main():
         # 設定内容保存
         a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x20, 0x03, 0x01), True)
         # センサ計測開始
-         
     # Main loop --------
     print('Notification wait')
     while True:
@@ -493,12 +478,45 @@ async def main():
             if a.waitForNotifications(1.0):
                 # handleNotification() was called
                 continue
-
-            print("Waiting...",i)
             # Perhaps do something else here
-    await STOP.wait()
-    client.disconnect()
+#        await asyncio.Event().wait()
+        try:
+            await asyncio.wait_for(asyncio.Event().wait(), timeout=0.1)
+            print('end')
+            break
+        except asyncio.TimeoutError:
+            pass
+
+async def mqttmain(clientm):
+    print('mqttmain')
+    print(' - mqtt connect', host, port)
+    await clientm.connect(host, port, keepalive=60)
+    print(' - subscribe')
+#    clientm.subscribe(subscriptor, subscription_identifier=len(subscriptor))
+    clientm.subscribe('_1451.1.6/D0C/#', qos=1)
+    await asyncio.Event().wait()
 
 if __name__ == '__main__':
+    print('start')
+    if sys.version_info[0] != 3:
+        print("Version 3 is required")
+    print('MQTT setup')
+    node = uuid.getnode()
+    mac = uuid.UUID(int=node)
+    addr = mac.hex[-12:]
+    addrm = addr+'mqtt'
+    print(' - Client ID='+addr)
+    client = gmqtt.Client(addr)
+    clientm = gmqtt.Client(addrm)
+    print(' - set callbacks')
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    clientm.on_connect = on_connect
+    clientm.on_disconnect = on_disconnect
+    clientm.on_subscribe = on_subscribe
+    clientm.on_message = on_message
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    gather = asyncio.gather(
+        alpsmain(client), mqttmain(clientm)
+    )
+    loop.run_until_complete(gather)
