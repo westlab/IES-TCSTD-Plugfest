@@ -8,8 +8,8 @@ tomdop: D/
 tomcop: D0C/
 tomd0op: D0/
 # Does not need / in the end
-loc: plugfest/2021/ncap0/
-locclient: plugfest/2021/application0/
+loc: plugfest/2021/ncap0
+locclient: plugfest/2021/application0
 slowsample: 1
 fastsample: 500
 reqtopic: NCAP/1451OPE
