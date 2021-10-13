@@ -60,8 +60,12 @@ topiccopres = confdata['spfx']+confdata['tomcop']+confdata['locclient'] # publis
 topicd0op = confdata['spfx']+confdata['tomd0op']+confdata['loc'] # subscribe
 topicd0opres = confdata['spfx']+confdata['tomd0op']+confdata['locclient'] # publish
 #'_1451.1.6(SPFX)/D0(TOM)/LOC'
+pprint.pprint([topiccop, topicd0op])
+#subscriptor = [
+#    gmqtt.Subscription(topiccop, qos=1), gmqtt.Subscription(topicd0op, qos=2)
+#]
 subscriptor = [
-    gmqtt.Subscription(topiccop, qos=0), gmqtt.Subscription(topicd0op, qos=0)
+    gmqtt.Subscription('#', qos=1)
 ]
 
 vgeomagx = {}
@@ -120,9 +124,15 @@ def s16(value):
 
 def on_connect(client, flags, rc, properties):
     print('[CONNECTED {}]'.format(client._client_id))
+    print(' - subscribe')
+#    client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
+    client.subscribe('#', qos=1)
 
 def on_disconnect(client, packet, exc=None):
     print('[DISCONNECTED {}]'.format(client._client_id))
+
+def on_subscribe(client, mid, qos, properties):
+    print('[SUBCRIBED {} MID: {} QOS: {} PROPERTIES: {}]'.format(client._client_id, mid, qos, properties))
 
 def on_message(client, topic, payload, qos, properties):
     print('[RECV MSG {}] TOPIC: {} PAYLOAD: {} QOS: {} PROPERTIES: {}'
@@ -408,11 +418,10 @@ async def main():
     print(' - set callbacks')
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
     print(' - connect', host, port)
     await client.connect(host, port, keepalive=60)
-    print(' - subscribe')
-    client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
     print('ALPS setup')
     alpsarray = []
     n = 1
@@ -487,6 +496,7 @@ async def main():
 
             print("Waiting...",i)
             # Perhaps do something else here
+    await STOP.wait()
     client.disconnect()
 
 if __name__ == '__main__':
