@@ -269,42 +269,42 @@ def on_message(client, topic, payload, qos, properties):
             print('ncapId: ', mline['ncapId'], ' buuid0: ',  buuid0)
             if mline['ncapId'] == buuid0:
                 print(mline['timId'])
-                sbp = bytearray([0x2, 0x1, 0x2, 0x0, 0x0])
+                sbp = bytearray([0x2, 0x1, 0x2, 0x0, 0x0, 0x0, 0x0])
                 chid = int.from_bytes(mline['channelId'], 'big')
                 print(mline['channelId'])
                 print('chid:',chid)
                 if mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vtemp[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vtemp[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read TEMP")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vhumid[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vhumid[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read HUMID")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vpres[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vpres[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read PRESS")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x3]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vuv[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vuv[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read UV")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(villumi[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(villumi[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read ILLUMI")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x5]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vgeomagx[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vgeomagx[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read GEOMAGX")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x6]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vgeomagy[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vgeomagy[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read GEOMAGY")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vgeomagz[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vgeomagz[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read GEOMAGZ")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x8]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vaccelx[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vaccelx[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read ACCELX")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x9]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vaccely[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vaccely[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read ACCELY")
                 elif mline['timId'] == bytearray([0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xa]):
-                    client.publish(topicd0opres, sbp+buuid0+buuid0+bytearray(mline['channelId'])+(vaccelz[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
+                    client.publish(topicd0opres, sbp+buuid0+mline['timId']+bytearray(mline['channelId'])+(vaccelz[chid].encode()+bnull)[0:5]+bts+bytearray(mline['sessionId']))
                     print("Read ACCELZ")
                 else:
                     print("timId Error")
