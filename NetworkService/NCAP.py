@@ -523,6 +523,10 @@ if __name__ == '__main__':
     print(' - Client ID='+addr)
     client = gmqtt.Client(addr)
     clientm = gmqtt.Client(addrm)
+    if (confdata['username']):
+        print('Credentials for ', confdata['username'])
+        client.set_auth_credentials(confdata['username'], confdata['password'])
+        clientm.set_auth_credentials(confdata['username'], confdata['password'])
     print(' - set callbacks')
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect

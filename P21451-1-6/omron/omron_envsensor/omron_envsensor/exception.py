@@ -1,0 +1,3 @@
+
+class NoCallBackException(Exception):
+    pass

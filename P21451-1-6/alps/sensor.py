@@ -40,7 +40,7 @@ class NtfyDelegate(btle.DefaultDelegate):
             trans_hour=trans_hour.strftime("%Y-%m-%d-%H")
             file_path='./data_save/battery/'+sensor_folder_name+hour_now+".json"
 
-            server_path = 'SmaAgri/Noken/sonoda/'
+            server_path = 'SmaAgri/Noken/sonoda/'+sensor_folder_name
             trans_file = trans_hour + '.json'
             path_battery = './data_save/battery/' + sensor_folder_name
             trans_path = path_battery + trans_file
@@ -64,10 +64,10 @@ class NtfyDelegate(btle.DefaultDelegate):
                 with open(file_path,'w') as f:
                     json.dump(all, f, indent=2)
 
-                if os.path.isfile(trans_path):
-                    ftp = FTP('10.26.0.1', 'ayu_ftp', passwd='WestO831')
-                    with open(path_battery + trans_file, 'rb') as f:
-                        ftp.storlines("STOR /"+server_path + trans_file, f)
+#                if os.path.isfile(trans_path):
+#                    ftp = FTP('10.26.0.1', 'ayu_ftp', passwd='WestO831')
+#                    with open(path_battery + trans_file, 'rb') as f:
+#                        ftp.storlines("STOR /"+server_path + trans_file, f)
 
     #    if int((cal[0:2]), 16) == 0xf2:
     #        GeoMagnetic_X = s16(int((cal[6:8] + cal[4:6]), 16)) * 0.15
@@ -114,7 +114,7 @@ class NtfyDelegate(btle.DefaultDelegate):
                 ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
                 hour = datetime.now().strftime('%Y-%m-%d-%H')
                 path_environment = './data_save/environment/' + sensor_folder_name
-                server_path = 'SmaAgri/Noken/sonoda/'
+                server_path = 'SmaAgri/Noken/sonoda/'+sensor_folder_name
                 trans_hour = trans_hour.strftime("%Y-%m-%d-%H")
                 trans_file_path = './data_save/environment/' + sensor_folder_name+trans_hour+'.json'
                 trans_file = trans_hour+'.json'
@@ -122,11 +122,11 @@ class NtfyDelegate(btle.DefaultDelegate):
 
                     with open(trans_file_path, 'rb') as f:
                         ftp.storlines("STOR "+server_path + trans_file, f)
-              
-
-               # ftp_takayama = FTP('192.168.11.4', '', passwd='')
-               # with open(trans_file, 'rb') as f:
-               #     ftp_takayama.storlines("STOR "+ + trans_file, f)
+             
+                ftp_takayama = FTP('192.168.11.4', 'sonoda', passwd='WestO831')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp_takayama.storlines("STOR "+"/mnt/ssd/sonoda/" + sensor_folder_name + trans_file, f)
 
 
 
