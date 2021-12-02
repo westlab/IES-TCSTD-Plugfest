@@ -1,0 +1,226 @@
+{
+  "2021-12-2-17-0": {
+    "Temperature": 24.26,
+    "Humidity": 72.78125,
+    "Pressure": 1017.1564812695506,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-1": {
+    "Temperature": 23.32,
+    "Humidity": 70.109375,
+    "Pressure": 1017.103990234226,
+    "UV": 0.02577319587628866,
+    "AmbientLight": 21.551724137931032
+  },
+  "2021-12-2-17-2": {
+    "Temperature": 21.78,
+    "Humidity": 71.203125,
+    "Pressure": 1017.103990234226,
+    "UV": 0.02577319587628866,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-3": {
+    "Temperature": 20.5,
+    "Humidity": 73.21875,
+    "Pressure": 1017.0777447165636,
+    "UV": 0.05154639175257732,
+    "AmbientLight": 64.6551724137931
+  },
+  "2021-12-2-17-4": {
+    "Temperature": 19.6,
+    "Humidity": 75.171875,
+    "Pressure": 1017.1564812695506,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-5": {
+    "Temperature": 18.92,
+    "Humidity": 76.75,
+    "Pressure": 1017.103990234226,
+    "UV": 0.07731958762886597,
+    "AmbientLight": 21.551724137931032
+  },
+  "2021-12-2-17-6": {
+    "Temperature": 18.38,
+    "Humidity": 78.25,
+    "Pressure": 1017.1302357518883,
+    "UV": 0.0,
+    "AmbientLight": 86.20689655172413
+  },
+  "2021-12-2-17-7": {
+    "Temperature": 17.92,
+    "Humidity": 80.0625,
+    "Pressure": 1017.1827267872129,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-8": {
+    "Temperature": 17.52,
+    "Humidity": 81.5625,
+    "Pressure": 1017.1827267872129,
+    "UV": 0.0,
+    "AmbientLight": 43.103448275862064
+  },
+  "2021-12-2-17-9": {
+    "Temperature": 17.22,
+    "Humidity": 82.78125,
+    "Pressure": 1017.1827267872129,
+    "UV": 0.0,
+    "AmbientLight": 21.551724137931032
+  },
+  "2021-12-2-17-10": {
+    "Temperature": 17.08,
+    "Humidity": 84.3125,
+    "Pressure": 1017.2483405813688,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-11": {
+    "Temperature": 17.06,
+    "Humidity": 85.265625,
+    "Pressure": 1017.2483405813688,
+    "UV": 0.0,
+    "AmbientLight": 43.103448275862064
+  },
+  "2021-12-2-17-12": {
+    "Temperature": 17.04,
+    "Humidity": 85.875,
+    "Pressure": 1017.2877088578622,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-13": {
+    "Temperature": 17.12,
+    "Humidity": 86.171875,
+    "Pressure": 1017.2877088578622,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-14": {
+    "Temperature": 17.84,
+    "Humidity": 86.0625,
+    "Pressure": 1017.3139543755245,
+    "UV": 0.0,
+    "AmbientLight": 43.103448275862064
+  },
+  "2021-12-2-17-15": {
+    "Temperature": 19.04,
+    "Humidity": 83.921875,
+    "Pressure": 1017.3401998931869,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-16": {
+    "Temperature": 20.28,
+    "Humidity": 81.5,
+    "Pressure": 1017.2877088578622,
+    "UV": 0.0,
+    "AmbientLight": 64.6551724137931
+  },
+  "2021-12-2-17-17": {
+    "Temperature": 21.94,
+    "Humidity": 78.609375,
+    "Pressure": 1017.3401998931869,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-18": {
+    "Temperature": 23.74,
+    "Humidity": 73.515625,
+    "Pressure": 1017.2877088578622,
+    "UV": 0.02577319587628866,
+    "AmbientLight": 64.6551724137931
+  },
+  "2021-12-2-17-19": {
+    "Temperature": 23.74,
+    "Humidity": 69.8125,
+    "Pressure": 1017.3139543755245,
+    "UV": 0.05154639175257732,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-20": {
+    "Temperature": 22.38,
+    "Humidity": 69.703125,
+    "Pressure": 1017.2877088578622,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-21": {
+    "Temperature": 21.0,
+    "Humidity": 71.265625,
+    "Pressure": 1017.3401998931869,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-22": {
+    "Temperature": 19.9,
+    "Humidity": 73.5,
+    "Pressure": 1017.3664454108491,
+    "UV": 0.0,
+    "AmbientLight": 43.103448275862064
+  },
+  "2021-12-2-17-23": {
+    "Temperature": 19.14,
+    "Humidity": 75.328125,
+    "Pressure": 1017.3664454108491,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-24": {
+    "Temperature": 18.54,
+    "Humidity": 76.90625,
+    "Pressure": 1017.3401998931869,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-25": {
+    "Temperature": 18.06,
+    "Humidity": 78.21875,
+    "Pressure": 1017.3926909285115,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-26": {
+    "Temperature": 17.64,
+    "Humidity": 79.75,
+    "Pressure": 1017.432059205005,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-27": {
+    "Temperature": 17.28,
+    "Humidity": 80.90625,
+    "Pressure": 1017.3401998931869,
+    "UV": 0.0,
+    "AmbientLight": 21.551724137931032
+  },
+  "2021-12-2-17-28": {
+    "Temperature": 16.98,
+    "Humidity": 82.28125,
+    "Pressure": 1017.4058136873426,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-29": {
+    "Temperature": 16.9,
+    "Humidity": 84.0,
+    "Pressure": 1017.4976729991607,
+    "UV": 0.02577319587628866,
+    "AmbientLight": 43.103448275862064
+  },
+  "2021-12-2-17-30": {
+    "Temperature": 16.82,
+    "Humidity": 84.5625,
+    "Pressure": 1017.4845502403296,
+    "UV": 0.0,
+    "AmbientLight": 0.0
+  },
+  "2021-12-2-17-31": {
+    "Temperature": 16.84,
+    "Humidity": 85.296875,
+    "Pressure": 1017.5764095521477,
+    "UV": 0.05154639175257732,
+    "AmbientLight": 43.103448275862064
+  }
+}
