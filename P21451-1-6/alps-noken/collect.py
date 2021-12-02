@@ -123,10 +123,10 @@ class NtfyDelegate(btle.DefaultDelegate):
                     with open(trans_file_path, 'rb') as f:
                         ftp.storlines("STOR "+server_path + trans_file, f)
              
-#                ftp_takayama = FTP('192.168.11.4', 'sonoda', passwd='WestO831')
-#                if os.path.isfile(trans_file_path):
-#                    with open(trans_file_path, 'rb') as f:
-#                        ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + trans_file, f)
+                ftp_takayama = FTP('192.168.11.4', 'sonoda', passwd='WestO831')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp_takayama.storlines("STOR "+"/mnt/ssd/sonoda/" + sensor_folder_name + trans_file, f)
 
 
 
@@ -149,22 +149,7 @@ def main(sensor_number):
         alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
 
      
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2F, 0x03, 0x03), True) # (不揮発)保存内容の初期化
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x01, 0x03, 0x7c), True) # 地磁気、加速度,気圧,温度,湿度,UV,照度を有効
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x04, 0x03, 0x00), True) # slow Mode
-#    alps.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x06, 0x04, 0x64, 0x00), True) # Fast 100msec (地磁気,加速度)
-#    alps.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x06, 0x04, 0x7A, 0x01), True) # Fast 250msec (地磁気,加速度)
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x05, 0x04, 0x3C, 0x00), True) # Slow 1sec (気圧,温度,湿度,UV,照度)
-
-#    alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x21, 0x03, 0x01), True)
- #   alps.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x10, 0x04, 0x01, 0x00), True)
-
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x24, 0x03, 0x01), True) #自動status通知
-
-        #alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x02, 0x03, 0x02), True) # 加速度±8G
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2F, 0x03, 0x01), True) # 設定内容保存
-##        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x20, 0x03, 0x01), True) # センサ計測開始
-     
+            
 # Main loop --------
         while True:
             if alps.waitForNotifications(1.0):
