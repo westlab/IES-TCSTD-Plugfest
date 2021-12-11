@@ -106,7 +106,7 @@ class NtfyDelegate(btle.DefaultDelegate):
 
                 if os.path.isfile(trans_file_path):
                     with open(trans_file_path, 'rb') as f:
-                        ftp.storlines("STOR /"+ qnap_path, f)
+                        ftp.storlines("STOR /" + qnap_path, f)
              
 
                 ftp_takayama = FTP('192.168.11.4', 'sonoda', passwd='WestO831')

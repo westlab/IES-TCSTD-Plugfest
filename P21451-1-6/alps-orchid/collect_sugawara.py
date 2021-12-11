@@ -51,6 +51,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             idx = int(cal[38:40],16)
             #以下のコードでindexとタイムスタンプを保存しておく
             self.idx = idx
+            hour = str(hour).zfill(2)
+            minute = str(minute).zfill(2)
+            second = str(second ).zfill(2)
             self.time = [hour, minute, second]
 
         if int((cal[0:2]), 16) == 0xf3:
@@ -60,7 +63,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             day = int(cal[32:34],16)
+            day = str(day).zfill(2)
             month = int(cal[34:36], 16)
+            month = str(month).zfill(2)
             year = int(cal[36:38], 16)
             idx = int(cal[38:40], 16)
 
@@ -68,7 +73,7 @@ class NtfyDelegate(btle.DefaultDelegate):
               hour, minute, second = self.time
 
               #for debug
-              print("20{}-{}-{}-{}-{}のデータは以下のとおりです".format(year, month, day, hour, minute, second))
+              print("20{}-{}-{}-{}-{}のデータは以下のとおりです:{}".format(year, month, day, hour, minute,  self.name))
               print("Temperature: {} \n Humidity: {} \n Pressure: {} \n AmbientLight: {} \n UV: {} \n".format(Temperature, Humidity, Pressure, AmbientLight, UV))
 
               #debug end
@@ -86,23 +91,20 @@ class NtfyDelegate(btle.DefaultDelegate):
               with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
 #
-#                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-#                hour = datetime.now().strftime('%Y-%m-%d-%H')
-#                path_environment = './data_save/environment/' + sensor_folder_name
-#                server_path = 'SmaAgri/Orchid/sonoda/'+sensor_folder_name
-#                trans_hour = trans_hour.strftime("%Y-%m-%d-%H")
-#                trans_file_path = './data_save/environment/' + sensor_folder_name+trans_hour+'.json'
-#                trans_file = trans_hour+'.json'
-#                if os.path.isfile(trans_file_path):
-#
-#                    with open(trans_file_path, 'rb') as f:
-#                        ftp.storlines("STOR "+server_path + trans_file, f)
-#              
-#
-               # ftp_takayama = FTP('192.168.11.4', '', passwd='')
-               # with open(trans_file, 'rb') as f:
-               #     ftp_takayama.storlines("STOR "+ + trans_file, f)
+              ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
+              last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+              trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+              qnap_path = 'SmaAgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
 
+#                if os.path.isfile(trans_file_path):
+#                  with open(trans_file_path, 'rb') as f:
+#                    ftp.storlines("STOR /" + qnap_path, f)
+
+              ftp_takayama = FTP('192.168.128.178', 'sonoda', passwd = 'WestO831')
+              if os.path.isfile(trans_file_path):
+                with open(trans_file_path, 'rb') as f:
+                  ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
+                
 
 
 class AlpsSensor(Peripheral):
@@ -119,6 +121,14 @@ def main(sensor):
         alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
 
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
+        now = datetime.now()
+        year = int(str(now.year)[2:])
+        month = now.month
+        day = now.day
+        hour = now.hour
+        minute = now.minute
+        second = now.second
+        alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
 
 # Main loop --------
         count = 0

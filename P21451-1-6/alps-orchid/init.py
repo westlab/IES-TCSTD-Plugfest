@@ -9,7 +9,7 @@ from datetime import datetime,date,timedelta
 from ftplib import FTP
 import time
 import sys #引数を受け取るために使う
-
+import global_variable as g
  
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
@@ -64,15 +64,17 @@ def main(sensor):
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2F, 0x03, 0x01), True) # 設定内容保存
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x20, 0x03, 0x01), True) # センサ計測開始
         alps.disconnect()
-        print("初期化成功\n")
+        print("初期化成功:{}".format("sensor" + sensor_number))
         success_flag = True #初期化成功したのでwhileを抜ける
 
       except Exception as e: #エラーがあった場合実行される 
         print(e)
-        print("初期化失敗、30秒後再トライします")
+        print("初期化失敗、30秒後再トライします:{}".format("sensor" + sensor_number))
         time.sleep(30)
         pass #エラーが発生した場合特に何もする必要はない
 
 if __name__ == "__main__":
+    sensor_number = sys.argv[1]
+    sensor = g.sensor_list[int(sensor_number)-1]
     main(sensor)
  
