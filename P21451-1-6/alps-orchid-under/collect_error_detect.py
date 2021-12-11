@@ -4,10 +4,10 @@ import sys
 import requests
 import global_variable as g
 
-for sensor in g.sensor_list:
-  count = 0
-  error = None
-  while True:
+sensor = g.sensor_list[int(sys.argv[1])-1]
+count = 0
+error = None
+while True:
     try:
       print("start collecting data from {}".format(sensor))
       collect(sensor)
@@ -15,6 +15,7 @@ for sensor in g.sensor_list:
       break
     except Exception as e:
       error = e
+      print(e)
       count += 1
       print("failed to collect data from {}. this program is going to try it again in 30sec.".format(sensor))
       sleep(30)
