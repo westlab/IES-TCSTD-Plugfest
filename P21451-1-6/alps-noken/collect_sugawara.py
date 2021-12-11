@@ -51,6 +51,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             idx = int(cal[38:40],16)
             #以下のコードでindexとタイムスタンプを保存しておく
             self.idx = idx
+            hour = str(hour).zfill(2)
+            minute = str(minute).zfill(2)
+            second = str(second).zfill(2)
             self.time = [hour, minute, second]
 
         if int((cal[0:2]), 16) == 0xf3:
@@ -60,7 +63,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             day = int(cal[32:34],16)
+            day = str(day).zfill(2)#zero filled 
             month = int(cal[34:36], 16)
+            month = str(month).zfill(2)
             year = int(cal[36:38], 16)
             idx = int(cal[38:40], 16)
 
@@ -89,7 +94,7 @@ class NtfyDelegate(btle.DefaultDelegate):
               ftp = FTP('10.26.0.1','ayu_ftp', passwd = 'WestO831')
               last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
               trans_file_path = './data_save/environment/' + "sensor" + self.sensor_number + "/" + last_hour + '.json'
-              qnap_path = 'SmaAgri/Noken/sonoda/noken/' + "sensor" + self.sensor_number + "/" + last_hour + '.json'
+              qnap_path = 'SmaAgri/Noken/sonoda/' + "sensor" + self.sensor_number + "/" + last_hour + '.json'
               if os.path.isfile(trans_file_path):
                   with open(trans_file_path, 'rb') as f:
                       ftp.storlines("STOR /"+ qnap_path, f)
