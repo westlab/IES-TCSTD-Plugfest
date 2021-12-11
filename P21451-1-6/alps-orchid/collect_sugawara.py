@@ -19,6 +19,7 @@ def s16(value):
 class NtfyDelegate(btle.DefaultDelegate):
     def __init__(self, params, mac_add):
         self.name = mac_add #self.nameにセンサーのMacアドレスを代入
+        self.sensor_number = g.sensor_dic[mac_add]
 
         self.idx = -1
         self.date= None
@@ -31,7 +32,7 @@ class NtfyDelegate(btle.DefaultDelegate):
         # ... process 'data'
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        sensor_folder_name = self.name + '/'
+        sensor_folder_name = self.sensor_number + '/'
         os.makedirs("./data_save/battery/" + sensor_folder_name, exist_ok=True)
         os.makedirs("./data_save/environment/" + sensor_folder_name, exist_ok=True)
 
@@ -40,7 +41,7 @@ class NtfyDelegate(btle.DefaultDelegate):
             print("battery: {}mV".format(battery))
             if battery < 1500:
               params = {
-                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.name, battery)
+                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.sensor_number, battery)
               }
               requests.post(g.LINE_URL, headers=g.headers, params=params)
 
@@ -84,26 +85,47 @@ class NtfyDelegate(btle.DefaultDelegate):
                 with open(file_path, 'r') as f:
                   data = json.load(f) #既存のデータを読み込み
               else: # file do not exist
+<<<<<<< HEAD
+                  data = {} #dataを初期化して作っておく
+
+
+#
+                  last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                  trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                  qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                  ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
+                  if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                      ftp.storlines("STOR /" + qnap_path, f)
+
+                  ftp_takayama = FTP('192.168.128.178', 'sonoda', passwd = 'WestO831')
+                  if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                      ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
+=======
                 data = {} #dataを初期化して作っておく
+                last_hour = (datetime.now()+ timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                qnap_path = 'SmaSgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                ftp = FTP('10.26.0.1', 'ayu_ftp', passwd = 'WestO831')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
+                  ftp.storlines("STOR /" + qnap_path, f)
+
+                ftp_takayama = FTP('192.168.128.178', 'sonoda', passwd = 'WestO831')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
+                    ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
+>>>>>>> ff360290f60c4ea9f05c07abbf649c1ae6ff50a4
 
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
               with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
+
 #
-              ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-              last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
-              trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
-              qnap_path = 'SmaAgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
-
-#                if os.path.isfile(trans_file_path):
-#                  with open(trans_file_path, 'rb') as f:
-#                    ftp.storlines("STOR /" + qnap_path, f)
-
-              ftp_takayama = FTP('192.168.128.178', 'sonoda', passwd = 'WestO831')
-              if os.path.isfile(trans_file_path):
-                with open(trans_file_path, 'rb') as f:
-                  ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
                 
 
 

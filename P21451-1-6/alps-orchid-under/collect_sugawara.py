@@ -19,6 +19,7 @@ def s16(value):
 class NtfyDelegate(btle.DefaultDelegate):
     def __init__(self, params, mac_add):
         self.name = mac_add #self.nameにセンサーのMacアドレスを代入
+        self.sensor_number = g.sensor_dic[mac_add]
 
         self.idx = -1
         self.date= None
@@ -31,7 +32,7 @@ class NtfyDelegate(btle.DefaultDelegate):
         # ... process 'data'
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        sensor_folder_name = self.name + '/'
+        sensor_folder_name = self.sensor_number + '/'
         os.makedirs("./data_save/battery/" + sensor_folder_name, exist_ok=True)
         os.makedirs("./data_save/environment/" + sensor_folder_name, exist_ok=True)
 
@@ -40,7 +41,7 @@ class NtfyDelegate(btle.DefaultDelegate):
             print("battery: {}mV".format(battery))
             if battery < 1500:
               params = {
-                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.name, battery)
+                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.sensor_number, battery)
               }
               requests.post(g.LINE_URL, headers=g.headers, params=params)
 
@@ -51,6 +52,10 @@ class NtfyDelegate(btle.DefaultDelegate):
             idx = int(cal[38:40],16)
             #以下のコードでindexとタイムスタンプを保存しておく
             self.idx = idx
+            hour = str(hour).zfill(2)
+            minute = str(minute).zfill(2)
+            second = str(second).zfill(2)
+
             self.time = [hour, minute, second]
 
         if int((cal[0:2]), 16) == 0xf3:
@@ -60,7 +65,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             day = int(cal[32:34],16)
+            day = str(day).zfill(2)
             month = int(cal[34:36], 16)
+            month = str(month).zfill(2)
             year = int(cal[36:38], 16)
             idx = int(cal[38:40], 16)
 
@@ -81,28 +88,25 @@ class NtfyDelegate(btle.DefaultDelegate):
               else: # file do not exist
                 data = {} #dataを初期化して作っておく
 
+                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
+                hour = datetime.now().strftime('%Y-%m-%d-%H')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp.storlines("STOR "+server_path + trans_file, f)
+
+                ftp_takayama = FTP('192.168.11.4', '', passwd='')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file, 'rb') as f:
+                     ftp_takayama.storlines("STOR "+ + trans_file, f)
+
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
               with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
-#
-#                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-#                hour = datetime.now().strftime('%Y-%m-%d-%H')
-#                path_environment = './data_save/environment/' + sensor_folder_name
-#                server_path = 'SmaAgri/Orchid/sonoda/'+sensor_folder_name
-#                trans_hour = trans_hour.strftime("%Y-%m-%d-%H")
-#                trans_file_path = './data_save/environment/' + sensor_folder_name+trans_hour+'.json'
-#                trans_file = trans_hour+'.json'
-#                if os.path.isfile(trans_file_path):
-#
-#                    with open(trans_file_path, 'rb') as f:
-#                        ftp.storlines("STOR "+server_path + trans_file, f)
-#              
-#
-               # ftp_takayama = FTP('192.168.11.4', '', passwd='')
-               # with open(trans_file, 'rb') as f:
-               #     ftp_takayama.storlines("STOR "+ + trans_file, f)
-
 
 
 class AlpsSensor(Peripheral):
