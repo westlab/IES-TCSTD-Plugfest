@@ -38,3 +38,4 @@ headers = {
 #sensor = "48:F0:7B:78:4B:8A"
 sensor_list = ['8F','9A','78','99','76','97','74','93','77']
 sensor_list = ["48:F0:7B:78:4B:" + x for x in sensor_list]
+sensor_dic = {"48:F0:7B:78:4B:8F":"sensor7","48:F0:7B:78:4B:9A":"sensor8", "48:F0:7B:78:4B:78":"sensor9", "48:F0:7B:78:4B:99":"sensor10", "48:F0:7B:78:4B:76":"sensor11", "48:F0:7B:78:4B:97":"sensor12", "48:F0:7B:78:4B:74":"sensor13", "48:F0:7B:78:4B:93":"sensor15", "48:F0:7B:78:4B:77":"sensor17"} 
