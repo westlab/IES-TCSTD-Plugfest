@@ -19,6 +19,7 @@ def s16(value):
 class NtfyDelegate(btle.DefaultDelegate):
     def __init__(self, params, mac_add):
         self.name = mac_add #self.nameにセンサーのMacアドレスを代入
+        self.sensor_number = g.sensor_dic[mac_add]
 
         self.idx = -1
         self.date= None
@@ -31,7 +32,7 @@ class NtfyDelegate(btle.DefaultDelegate):
         # ... process 'data'
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        sensor_folder_name = self.name + '/'
+        sensor_folder_name = self.sensor_number + '/'
         os.makedirs("./data_save/battery/" + sensor_folder_name, exist_ok=True)
         os.makedirs("./data_save/environment/" + sensor_folder_name, exist_ok=True)
 
@@ -40,7 +41,7 @@ class NtfyDelegate(btle.DefaultDelegate):
             print("battery: {}mV".format(battery))
             if battery < 1500:
               params = {
-                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.name, battery)
+                'message': "バッテリー残量が低下しています\n機体: {}\n現在の容量:{}mV".format(self.sensor_number, battery)
               }
               requests.post(g.LINE_URL, headers=g.headers, params=params)
 
@@ -51,6 +52,10 @@ class NtfyDelegate(btle.DefaultDelegate):
             idx = int(cal[38:40],16)
             #以下のコードでindexとタイムスタンプを保存しておく
             self.idx = idx
+            hour = str(hour).zfill(2)
+            minute = str(minute).zfill(2)
+            second = str(minute).zfiill(2)
+
             self.time = [hour, minute, second]
 
         if int((cal[0:2]), 16) == 0xf3:
@@ -60,7 +65,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             day = int(cal[32:34],16)
+            day = str(day).zfill(2)
             month = int(cal[34:36], 16)
+            month = str(month).zfill(2)
             year = int(cal[36:38], 16)
             idx = int(cal[38:40], 16)
 
