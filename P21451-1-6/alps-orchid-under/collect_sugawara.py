@@ -54,7 +54,7 @@ class NtfyDelegate(btle.DefaultDelegate):
             self.idx = idx
             hour = str(hour).zfill(2)
             minute = str(minute).zfill(2)
-            second = str(minute).zfiill(2)
+            second = str(second).zfill(2)
 
             self.time = [hour, minute, second]
 
@@ -88,28 +88,25 @@ class NtfyDelegate(btle.DefaultDelegate):
               else: # file do not exist
                 data = {} #dataを初期化して作っておく
 
+                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
+                hour = datetime.now().strftime('%Y-%m-%d-%H')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp.storlines("STOR "+server_path + trans_file, f)
+
+                ftp_takayama = FTP('192.168.11.4', '', passwd='')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file, 'rb') as f:
+                     ftp_takayama.storlines("STOR "+ + trans_file, f)
+
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
               with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
-#
-#                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-#                hour = datetime.now().strftime('%Y-%m-%d-%H')
-#                path_environment = './data_save/environment/' + sensor_folder_name
-#                server_path = 'SmaAgri/Orchid/sonoda/'+sensor_folder_name
-#                trans_hour = trans_hour.strftime("%Y-%m-%d-%H")
-#                trans_file_path = './data_save/environment/' + sensor_folder_name+trans_hour+'.json'
-#                trans_file = trans_hour+'.json'
-#                if os.path.isfile(trans_file_path):
-#
-#                    with open(trans_file_path, 'rb') as f:
-#                        ftp.storlines("STOR "+server_path + trans_file, f)
-#              
-#
-               # ftp_takayama = FTP('192.168.11.4', '', passwd='')
-               # with open(trans_file, 'rb') as f:
-               #     ftp_takayama.storlines("STOR "+ + trans_file, f)
-
 
 
 class AlpsSensor(Peripheral):
