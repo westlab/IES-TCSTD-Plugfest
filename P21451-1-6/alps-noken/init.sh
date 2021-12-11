@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in {1..7}
+for i in {1..6}
 do
   python init.py "$i" &
 done
