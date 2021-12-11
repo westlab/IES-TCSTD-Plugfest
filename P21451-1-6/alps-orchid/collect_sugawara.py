@@ -85,6 +85,7 @@ class NtfyDelegate(btle.DefaultDelegate):
                 with open(file_path, 'r') as f:
                   data = json.load(f) #既存のデータを読み込み
               else: # file do not exist
+<<<<<<< HEAD
                   data = {} #dataを初期化して作っておく
 
 
@@ -102,6 +103,22 @@ class NtfyDelegate(btle.DefaultDelegate):
                   if os.path.isfile(trans_file_path):
                     with open(trans_file_path, 'rb') as f:
                       ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
+=======
+                data = {} #dataを初期化して作っておく
+                last_hour = (datetime.now()+ timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                qnap_path = 'SmaSgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                ftp = FTP('10.26.0.1', 'ayu_ftp', passwd = 'WestO831')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
+                  ftp.storlines("STOR /" + qnap_path, f)
+
+                ftp_takayama = FTP('192.168.128.178', 'sonoda', passwd = 'WestO831')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
+                    ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + sensor_folder_name + last_hour + '.json', f)
+>>>>>>> ff360290f60c4ea9f05c07abbf649c1ae6ff50a4
 
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
