@@ -152,6 +152,15 @@ def main(sensor):
         second = now.second
         alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
 
+        now = datetime.now()
+        year = int(str(now.year)[2:])
+        month = now.month
+        day = now.day
+        hour = now.hour
+        minute = now.minute
+        second = now.second
+        alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
+
 # Main loop --------
         count = 0
         while True:

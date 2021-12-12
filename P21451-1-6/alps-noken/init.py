@@ -25,10 +25,6 @@ class NtfyDelegate(btle.DefaultDelegate):
         # ... process 'data'
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        sensor_folder_name = 'sensor' + sensor_number + '/'
-        os.makedirs("./data_save/battery/" + sensor_folder_name, exist_ok=True)
-        os.makedirs("./data_save/environment/" + sensor_folder_name, exist_ok=True)
-        return 0
         
 
 
@@ -61,7 +57,15 @@ def main(sensor_number):
 #    alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x21, 0x03, 0x01), True)
  #   alps.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x10, 0x04, 0x01, 0x00), True)
 
-        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x24, 0x03, 0x01), True) #自動status通知
+#        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x24, 0x03, 0x01), True) #自動status通知
+
+        now = datetime.now()
+        year = int(str(now.year)[2:])
+        month = now.month
+        day = now.day
+        hour = now.hour
+        minute = now.minute
+        second = now.second
 
         alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
         #alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x02, 0x03, 0x02), True) # 加速度±8G
