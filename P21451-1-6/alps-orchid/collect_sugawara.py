@@ -117,13 +117,18 @@ class AlpsSensor(Peripheral):
  
 
 def main(sensor):
+        print(120)
         alps = AlpsSensor(sensor)
+        print(122)
         alps.setDelegate( NtfyDelegate(btle.DefaultDelegate, sensor) )
- 
+        print(124)
         alps.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)# Custom1 Notify Enable 
+        print(126)
         alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
+        print(128)
 
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
+        print(131)
 
         now = datetime.now()
         year = int(str(now.year)[2:])
@@ -134,6 +139,7 @@ def main(sensor):
         second = now.second
         
         alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
+        print(142)
 
 
 # Main loop --------
