@@ -31,7 +31,7 @@ class NtfyDelegate(btle.DefaultDelegate):
         # ... process 'data'
         cal = binascii.b2a_hex(data)
         #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        sensor_folder_name = self.name + '/'
+        sensor_folder_name = self.sensor_number + '/'
         os.makedirs("./data_save/battery/" + sensor_folder_name, exist_ok=True)
         os.makedirs("./data_save/environment/" + sensor_folder_name, exist_ok=True)
 
@@ -51,6 +51,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             idx = int(cal[38:40],16)
             #以下のコードでindexとタイムスタンプを保存しておく
             self.idx = idx
+            hour = str(hour).zfill(2)
+            minute = str(minute).zfill(2)
+            second = str(second).zfill(2)
             self.time = [hour, minute, second]
 
         if int((cal[0:2]), 16) == 0xf3:
@@ -60,7 +63,9 @@ class NtfyDelegate(btle.DefaultDelegate):
             UV = int((cal[18:20] + cal[16:18]), 16) / (100*0.388)
             AmbientLight = int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928)
             day = int(cal[32:34],16)
+            day = str(day).zfill(2)#zero filled 
             month = int(cal[34:36], 16)
+            month = str(month).zfill(2)
             year = int(cal[36:38], 16)
             idx = int(cal[38:40], 16)
 
@@ -74,31 +79,36 @@ class NtfyDelegate(btle.DefaultDelegate):
               #debug end
               date = "20{}-{}-{}".format(year, month, day) #ex.2021-11-30
               file_name = "{}-{}.json".format(date, hour) #ex. 2021-11-30-18.json
-              file_path = './data_save/environment/' + "sensor" + self.sensor_number + "/" + file_name
+              file_path = './data_save/environment/' + "sensor" + sensor_folder_name + "/" + file_name
               if os.path.isfile(file_path): # file exists
                 with open(file_path, 'r') as f:
                   data = json.load(f) #既存のデータを読み込み
               else: # file do not exist
                 data = {} #dataを初期化して作っておく
 
+                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                qnap_path = 'SmaAgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
+                ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
+
+                ftp = FTP('10.26.0.1','ayu_ftp', passwd = 'WestO831')
+                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp.storlines("STOR /"+ qnap_path, f)
+#              
+#
+                ftp_ssd = FTP('192.168.11.4', 'sonoda', passwd = 'WestO831')
+                if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
+                        ftp_ssd.storlines("STOR " + ssd_path, f)
+                
+
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
               with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
 #
-              ftp = FTP('10.26.0.1','ayu_ftp', passwd = 'WestO831')
-              last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
-              trans_file_path = './data_save/environment/' + "sensor" + self.sensor_number + "/" + last_hour + '.json'
-              qnap_path = 'SmaAgri/Noken/sonoda/noken/' + "sensor" + self.sensor_number + "/" + last_hour + '.json'
-              if os.path.isfile(trans_file_path):
-                  with open(trans_file_path, 'rb') as f:
-                      ftp.storlines("STOR /"+ qnap_path, f)
-#              
-#
-              ftp_takayama = FTP('192.168.11.4', 'sonoda', passwd = 'WestO831')
-              if os.path.isfile(trans_file_path):
-                  with open(trans_file_path, 'rb') as f:
-                      ftp_takayama.storlines("STOR /mnt/ssd/sonoda/" + "sensor" + self.sensor_number + "/" + last_hour + '.json', f)
 
 
 
@@ -115,7 +125,8 @@ def main(sensor, sensor_number):
         alps.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)# Custom1 Notify Enable 
         alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
 
-        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
+        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)#センサーデータリクエスト
+
         # 以下時刻同期
         now = datetime.now()
         year = int(str(now.year)[2:])
@@ -124,7 +135,8 @@ def main(sensor, sensor_number):
         hour = now.hour
         minute = now.minute
         second = now.second
-        alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
+        if minute = 0:
+          alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
 
 # Main loop --------
         count = 0
