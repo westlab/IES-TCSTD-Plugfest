@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in {1..8}
+for i in {1..12}
 do
-  python3 sensor.py "$i" &
+  python3 init.py "$i" &
 done
