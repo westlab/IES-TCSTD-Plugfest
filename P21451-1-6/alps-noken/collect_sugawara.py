@@ -81,6 +81,7 @@ class NtfyDelegate(btle.DefaultDelegate):
               if os.path.isfile(file_path): # file exists
                 with open(file_path, 'r') as f:
                   data = json.load(f) 
+
               else: 
                 with open(file_path, 'x') as f:
                   data = {} #dataを初期化して作っておく
@@ -90,31 +91,34 @@ class NtfyDelegate(btle.DefaultDelegate):
                 qnap_path = 'SmaAgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
                 ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
                 
+
+                #qnap転送
+                print('qnap転送スタート')
+                ftp_qnap = FTP('10.26.0.1')
+                ftp_qnap.set_pasv('true')
+                ftp_qnap.login('ayu_ftp', 'WestO831')
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
+                    ftp_qnap.storlines('STOR ' + qnap_path, f)
+                ftp_qnap.close()
+
+
+                print('SSD転送スタート')
                 #ssd転送
                 ftp_ssd = FTP('192.168.11.4')
+                ftp_ssd.set_pasv('true')
                 ftp_ssd.login('sonoda', 'WestO831')
-                if os.path.isfile('trans_file_path'):
-                  with open('trans_file_path', 'rb') as f:
+                if os.path.isfile(trans_file_path):
+                  with open(trans_file_path, 'rb') as f:
                     ftp_ssd.storlines('STOR ' + ssd_path, f)
                 ftp_ssd.close()
 
 
-                #qnap転送
-                ftp_qnap = FTP('10.26.0.1')
-                ftp_qnap.login('ayu_ftp', 'WestO831')
-                if os.path.isfile('trans_file_path'):
-                  with open('trans_file_path', 'rb') as f:
-                    ftp_ssd.storlines('STOR ' + qnap_path, f)
-                ftp_qnap.close()
 
-
-
-              minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
-              data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
+              minute_now = "{}-{}-{}".format(date, hour, minute)
+              data[minute_now] = {"Temperature": Temperature, "Humidity": Humidity, "Pressure":Pressure, "UV":UV, "AmbientLight": AmbientLight}
               with open(file_path, 'w') as f:
-                json.dump(data, f, indent=2)
-#
-
+                json.dump(data, f, indent = 2)
 
 
 class AlpsSensor(Peripheral):
@@ -153,6 +157,6 @@ def main(sensor):
         alps.disconnect()
 
 if __name__ == "__main__":
-#    sensor = g.sensor_list[int(sys.argv[1])-1]
+    sensor = g.sensor_list[int(sys.argv[1])-1]
     main(sensor)
 
