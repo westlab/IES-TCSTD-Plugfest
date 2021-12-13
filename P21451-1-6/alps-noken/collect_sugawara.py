@@ -17,9 +17,9 @@ def s16(value):
 
 
 class NtfyDelegate(btle.DefaultDelegate):
-    def __init__(self, params, mac_add, sensor_number_passed):
+    def __init__(self, params, mac_add):
         self.name = mac_add #self.nameにセンサーのMacアドレスを代入
-        self.sensor_number = sensor_number_passed
+        self.sensor_number = g.sensor_dic[mac_add]
         self.idx = -1
         self.date= None
         self.time = None
@@ -72,37 +72,42 @@ class NtfyDelegate(btle.DefaultDelegate):
             if(self.idx == idx): #data indexがあっているか確認している
               hour, minute, second = self.time
 
-              #for debug
               print("20{}-{}-{}-{}-{}のデータは以下のとおりです".format(year, month, day, hour, minute, second))
               print("Temperature: {} \n Humidity: {} \n Pressure: {} \n AmbientLight: {} \n UV: {} \n".format(Temperature, Humidity, Pressure, AmbientLight, UV))
 
-              #debug end
               date = "20{}-{}-{}".format(year, month, day) #ex.2021-11-30
               file_name = "{}-{}.json".format(date, hour) #ex. 2021-11-30-18.json
-              file_path = './data_save/environment/' + "sensor" + sensor_folder_name + "/" + file_name
+              file_path = './data_save/environment/' + sensor_folder_name  + file_name
               if os.path.isfile(file_path): # file exists
                 with open(file_path, 'r') as f:
-                  data = json.load(f) #既存のデータを読み込み
-              else: # file do not exist
-                data = {} #dataを初期化して作っておく
+                  data = json.load(f) 
+              else: 
+                with open(file_path, 'x') as f:
+                  data = {} #dataを初期化して作っておく
 
                 last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
                 trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
                 qnap_path = 'SmaAgri/Noken/sonoda/' + sensor_folder_name + last_hour + '.json'
                 ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
-
-                ftp = FTP('10.26.0.1','ayu_ftp', passwd = 'WestO831')
-                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
-                if os.path.isfile(trans_file_path):
-                    with open(trans_file_path, 'rb') as f:
-                        ftp.storlines("STOR /"+ qnap_path, f)
-#              
-#
-                ftp_ssd = FTP('192.168.11.4', 'sonoda', passwd = 'WestO831')
-                if os.path.isfile(trans_file_path):
-                    with open(trans_file_path, 'rb') as f:
-                        ftp_ssd.storlines("STOR " + ssd_path, f)
                 
+                #ssd転送
+                ftp_ssd = FTP('192.168.11.4')
+                ftp_ssd.login('sonoda', 'WestO831')
+                if os.path.isfile('trans_file_path'):
+                  with open('trans_file_path', 'rb') as f:
+                    ftp_ssd.storlines('STOR ' + ssd_path, f)
+                ftp_ssd.close()
+
+
+                #qnap転送
+                ftp_qnap = FTP('10.26.0.1')
+                ftp_qnap.login('ayu_ftp', 'WestO831')
+                if os.path.isfile('trans_file_path'):
+                  with open('trans_file_path', 'rb') as f:
+                    ftp_ssd.storlines('STOR ' + qnap_path, f)
+                ftp_qnap.close()
+
+
 
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
@@ -118,15 +123,11 @@ class AlpsSensor(Peripheral):
         self.result = 1
  
 
-def main(sensor, sensor_number):
+def main(sensor):
         alps = AlpsSensor(sensor)
-        alps.setDelegate( NtfyDelegate(btle.DefaultDelegate, sensor, sensor_number) )
- 
+        alps.setDelegate( NtfyDelegate(btle.DefaultDelegate, sensor) )
         alps.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)# Custom1 Notify Enable 
-        alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
-
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)#センサーデータリクエスト
-
         # 以下時刻同期
         now = datetime.now()
         year = int(str(now.year)[2:])
@@ -135,8 +136,7 @@ def main(sensor, sensor_number):
         hour = now.hour
         minute = now.minute
         second = now.second
-        if minute = 0:
-          alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
+        alps.writeCharacteristic(0x0018, struct.pack('<bbbbbbbbbb', 0x30, 0x0A, 0x00, 0x00, second, minute, hour, day, month, year), True)
 
 # Main loop --------
         count = 0
@@ -153,5 +153,6 @@ def main(sensor, sensor_number):
         alps.disconnect()
 
 if __name__ == "__main__":
-    main(sensor, sensor_number)
+#    sensor = g.sensor_list[int(sys.argv[1])-1]
+    main(sensor)
 

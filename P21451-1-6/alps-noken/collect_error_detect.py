@@ -12,7 +12,7 @@ error = None
 while True:
   try:
     print("start collecting data from {}".format(sensor))
-    collect(sensor, sensor_number)
+    collect(sensor)
     print("end\n")
     break
   except Exception as e:
