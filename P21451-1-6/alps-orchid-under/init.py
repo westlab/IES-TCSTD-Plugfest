@@ -9,6 +9,7 @@ from datetime import datetime,date,timedelta
 from ftplib import FTP
 import time
 import sys #引数を受け取るために使う
+import global_variable as g
 
  
 def s16(value):
@@ -74,5 +75,6 @@ def main(sensor):
         pass #エラーが発生した場合特に何もする必要はない
 
 if __name__ == "__main__":
+    sensor = g.sensor_list[int(sys.argv[1])-1]
     main(sensor)
  

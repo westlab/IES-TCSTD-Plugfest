@@ -11,6 +11,7 @@ import time
 import sys #引数を受け取るために使う
 import requests #LINEに通知するために使う
 import global_variable as g
+import shutil
  
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
@@ -75,34 +76,45 @@ class NtfyDelegate(btle.DefaultDelegate):
               hour, minute, second = self.time
 
               #for debug
-              print("20{}-{}-{}-{}-{}のデータは以下のとおりです".format(year, month, day, hour, minute, second))
+              print("20{}-{}-{}-{}-{}のデータは以下のとおりです({})".format(year, month, day, hour, minute, self.sensor_number))
               print("Temperature: {} \n Humidity: {} \n Pressure: {} \n AmbientLight: {} \n UV: {} \n".format(Temperature, Humidity, Pressure, AmbientLight, UV))
 
               #debug end
               date = "20{}-{}-{}".format(year, month, day) #ex.2021-11-30
               file_name = "{}-{}.json".format(date, hour) #ex. 2021-11-30-18.json
               file_path = './data_save/environment/' + sensor_folder_name + file_name
-              if os.path.isfile(file_path): # file exists
+              if os.path.isfile(file_path): 
                 with open(file_path, 'r') as f:
-                  data = json.load(f) #既存のデータを読み込み
-              else: # file do not exist
-                data = {} #dataを初期化して作っておく
+                  data = json.load(f) 
+              else: 
+                with open(file_path, 'x') as f:
+                  #dataを初期化して作っておく
+                  f.write(str({}))
+                with open(file_path, 'r') as f:
+                  data = json.load(f)
+                
 
-                last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
-                trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
-                qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
-                ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
+                  last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
+                  trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
+                  qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
+                  ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
 
-                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-                hour = datetime.now().strftime('%Y-%m-%d-%H')
-                if os.path.isfile(trans_file_path):
-                    with open(trans_file_path, 'rb') as f:
-                        ftp.storlines("STOR /" + qnap_path, f)
+                  #qnap転送
+                  ftp_qnap = FTP('10.26.0.1')
+                  ftp_qnap.set_pasv('true')
+                  ftp_qnap.login('ayu_ftp', 'WestO831')
+                  if os.path.isfile('trans_file_path'):
+                    with open('trans_file_path', 'rb') as f:
+                      ftp_qnap.storlines('STOR /' + qnap_path, f)
+                  ftp_qnap.close()
 
-                ftp_ssd = FTP('192.168.11.4', 'ayu_ftp', passwd='WestO831')
-                if os.path.isfile(trans_file_path):
-                  with open(trans_file_path, 'rb') as f:
-                     ftp_ssd.storlines("STOR " + ssd_path, f)
+
+                  #ssd転送
+
+                  if os.path.isfile('trans_file_path'):
+                      shutil.copy('trans_file_path', ssd_path)
+
+
 
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
@@ -119,11 +131,10 @@ class AlpsSensor(Peripheral):
 def main(sensor):
         alps = AlpsSensor(sensor)
         alps.setDelegate( NtfyDelegate(btle.DefaultDelegate, sensor) )
- 
         alps.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)# Custom1 Notify Enable 
         alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
 
-        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
+#        alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
 
         now = datetime.now()
         year = int(str(now.year)[2:])

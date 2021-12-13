@@ -20,7 +20,7 @@ while True:
       print("failed to collect data from {}. this program is going to try it again in 30sec.".format(sensor))
       sleep(30)
     if count > 2:
-      print("we could not collect data from {}. please check it.\n".format(sensor))
+      print("we could not collect data from {}. please check it.\n".format("sensor" + sys.argv[1]))
       params = {
         'message': 'Error occured when collectiong data from {}.\n{}'.format(sensor,str(error))
       }

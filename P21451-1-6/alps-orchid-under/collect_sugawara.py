@@ -18,15 +18,14 @@ def s16(value):
 
 class NtfyDelegate(btle.DefaultDelegate):
     def __init__(self, params, mac_add):
-        self.name = mac_add #self.nameにセンサーのMacアドレスを代入
+        self.name = mac_add
         self.sensor_number = g.sensor_dic[mac_add]
 
         self.idx = -1
         self.date= None
         self.time = None
 
-        # ... initialise here
- 
+
     def handleNotification(self, cHandle, data): 
         # ... perhaps check cHandle
         # ... process 'data'
@@ -74,35 +73,44 @@ class NtfyDelegate(btle.DefaultDelegate):
             if(self.idx == idx): #data indexがあっているか確認している
               hour, minute, second = self.time
 
-              #for debug
               print("20{}-{}-{}-{}-{}のデータは以下のとおりです".format(year, month, day, hour, minute, second))
               print("Temperature: {} \n Humidity: {} \n Pressure: {} \n AmbientLight: {} \n UV: {} \n".format(Temperature, Humidity, Pressure, AmbientLight, UV))
 
-              #debug end
               date = "20{}-{}-{}".format(year, month, day) #ex.2021-11-30
               file_name = "{}-{}.json".format(date, hour) #ex. 2021-11-30-18.json
               file_path = './data_save/environment/' + sensor_folder_name + file_name
               if os.path.isfile(file_path): # file exists
                 with open(file_path, 'r') as f:
                   data = json.load(f) #既存のデータを読み込み
-              else: # file do not exist
-                data = {} #dataを初期化して作っておく
+              else: 
+                with open(file_path, 'x') as f:
+                  f.write(str({})) #dataを初期化して作っておく
+                with open(file_path, 'r') as f:
+                  data = json.load(f)
+
 
                 last_hour = (datetime.now() + timedelta(hours = -1)).strftime('%Y-%m-%d-%H')
                 trans_file_path = './data_save/environment/' + sensor_folder_name + last_hour + '.json'
                 qnap_path = 'SmaAgri/Orchid/sonoda/' + sensor_folder_name + last_hour + '.json'
                 ssd_path = '/mnt/ssd/sonoda/' + sensor_folder_name + last_hour + '.json'
 
-                ftp = FTP('10.26.0.1','ayu_ftp',passwd='WestO831')
-                hour = datetime.now().strftime('%Y-%m-%d-%H')
-                if os.path.isfile(trans_file_path):
-                    with open(trans_file_path, 'rb') as f:
-                        ftp.storlines("STOR /" + qnap_path, f)
+                ftp_ssd = FTP('192.168.100.31')
+                ftp_ssd.set_pasv('true')
+                ftp_ssd.login('sonoda_ftp', 'WestO831')
+                if os.path.isfile('trans_file_path'):
+                  with open("trans_file_path", "rb") as f:
+                      ftp_ssd.storlines("STOR " + ssd_path, f)
+                ftp_ssd.close()
 
-                ftp_ssd = FTP('192.168.11.4', 'ayu_ftp', passwd='WestO831')
-                if os.path.isfile(trans_file_path):
-                  with open(trans_file_path, 'rb') as f:
-                     ftp_ssd.storlines("STOR " + ssd_path, f)
+
+                ftp_qnap = FTP('10.26.0.1')
+                ftp_qnap.set_pasv('true')
+                ftp_qnap.login('ayu_ftp', 'WestO831')
+                if os.path.isfile('trans_file_path'):
+                  with open('trans_file_path', 'rb') as f:
+                      ftp_qnap.storlines('STOR /' + qnap_path, f)
+                ftp_qnap.close()
+
 
               minute_now = "{}-{}-{}".format(date, hour, minute) #ex. 2021-11-30-18-10
               data[minute_now] = {"Temperature":Temperature,"Humidity":Humidity,"Pressure":Pressure, "UV":UV, "AmbientLight":AmbientLight}
@@ -119,10 +127,7 @@ class AlpsSensor(Peripheral):
 def main(sensor):
         alps = AlpsSensor(sensor)
         alps.setDelegate( NtfyDelegate(btle.DefaultDelegate, sensor) )
- 
         alps.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)# Custom1 Notify Enable 
-        alps.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)# Custom2 Notify Enable
-
         alps.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2E, 0x03, 0x01), True)
 
         now = datetime.now()
