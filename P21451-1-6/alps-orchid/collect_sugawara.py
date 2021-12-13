@@ -103,16 +103,15 @@ class NtfyDelegate(btle.DefaultDelegate):
                   ftp_qnap = FTP('10.26.0.1')
                   ftp_qnap.set_pasv('true')
                   ftp_qnap.login('ayu_ftp', 'WestO831')
-                  if os.path.isfile('trans_file_path'):
-                    with open('trans_file_path', 'rb') as f:
+                  if os.path.isfile(trans_file_path):
+                    with open(trans_file_path, 'rb') as f:
                       ftp_qnap.storlines('STOR /' + qnap_path, f)
                   ftp_qnap.close()
 
 
                   #ssd転送
-
-                  if os.path.isfile('trans_file_path'):
-                      shutil.copy('trans_file_path', ssd_path)
+                  if os.path.isfile(trans_file_path):
+                      shutil.copy(trans_file_path, ssd_path)
 
 
 
