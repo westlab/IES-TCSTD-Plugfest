@@ -10,6 +10,7 @@ import io
 import csv
 import pprint
 
+
 '''
 msgType: Reserved 0 Command 1 Reply 2 Announcement 3 Notification 4 Callback 5
 addressType: IPv4 1 IPv6 2
@@ -159,26 +160,28 @@ class tpl2msg:
     def __init__(self, tpl):
         self.tpl = tpl
         self.offset = 0
-        self.buffer = "";
+        self.buffer = ""
+        self.rethash = []
         loc = 0
         self.concattype = ""
         for k, v in self.tpl.items():
             self.concattype += v['type']
-            if(loc != v['offset']):
-                print('The calculated loc(', loc,') of ', v['type'], ' did not match the given offset ', v['offset'])
             loc += struct.calcsize(v['type'])
 
     def decode(self, entcode):
-        mline = []
+        self.buffer = ""
+        self.rethash = []
+        loc = 0
         for k, v in self.tpl.items():
-            t_offset = v['offset']
-            aout = struct.unpack(concattype, entcode)
+            self.rethash[k] = struct.unpack_from(v['type'], entcode, loc)
+            loc += struct.calcsize(v['type'])
+        return self.
 
     def encode(self, enthash):
-        mline = []
+        loc = 0
         for k, v in self.tpl.items():
-            t_offset = v['offset']
-            struct.pack_into(v['type'], self.buffer, t_offset, enthash[k])
+            struct.pack_into(v['type'], self.buffer, loc, enthash[k])
+            loc += struct.calcsize(v['type'])
         return self.buffer
 
 # test
