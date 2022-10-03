@@ -9,6 +9,7 @@ import uuid
 import io
 import csv
 import pprint
+import ipaddress
 
 
 '''
@@ -21,26 +22,15 @@ UUID field and subfields arrangement:
     Time (40 bits) Byte 4-0
 '''
 
-ncap_announcement_ipv4 = {
+ncap_announcement = {
     'netSvcType'        : {'type': '<B', 'const': 1},
     'netSvcId'          : {'type': '<B', 'const': 1},
     'msgType'           : {'type': '<B', 'const': 3},
     'msgLength'         : {'type': '<H'},
     'ncapId'            : {'type': '<16B'},
     'ncapName'          : {'type': '<16s'},
-    'addressType'       : {'type': '<B', 'const': 1},
-    'ncapAddress'       : {'type': '$addressType$'},
-}
-
-ncap_announcement_ipv6 = {
-    'netSvcType'        : {'type': '<B', 'const': 1},
-    'netSvcId'          : {'type': '<B', 'const': 1},
-    'msgType'           : {'type': '<B', 'const': 3},
-    'msgLength'         : {'type': '<H'},
-    'ncapId'            : {'type': '<16B'},
-    'ncapName'          : {'type': '<16s'},
-    'addressType'       : {'type': '<B', 'const': 2},
-    'ncapAddress'       : {'type': '$addressType$'},
+    'addressType'       : {'type': '<B', 'cmd':'addrtype'},
+    'ncapAddress'       : {'type': '$addrtype$', 'cmd':'addr'},
 }
 
 ncap_tim_announcement = {
@@ -82,8 +72,8 @@ ncap_discovery_rep = {
     'appId'             : {'type': '<16B'},
     'ncapId'            : {'type': '<16B'},
     'ncapName'          : {'type': '<16s'},
-    'addressType'       : {'type': '<10s'},
-    'ncapAddresse'      : {'type': '$addressType$'},
+    'addressType'       : {'type': '<10s', 'cmd':'addrtype'},
+    'ncapAddress'       : {'type': '$addrtype$', 'cmd':'addr'},
 }
 
 ncap_tim_discovery_cmd = {
@@ -101,10 +91,9 @@ ncap_tim_discovery_rep = {
     'msgType'           : {'type': '<B', 'const': 2},
     'msgLength'         : {'type': '<H'},
     'errorCode'         : {'type': '<H'},
-    'numOfTims'         : {'type': '<2B'},
-    'timIds'            : {'type': '$array$<16B'},
-    'timNames'          : {'type': '$array$<16s'},
-
+    'numOfTims'         : {'type': '<2B', 'cmd':'num'},
+    'timIds'            : {'type': '<16B', 'cmd':'array'},
+    'timNames'          : {'type': '<16s', 'cmd':'array'},
 }
 
 ncap_tim_transducer_discovery_cmd = {
@@ -123,9 +112,9 @@ ncap_tim_transducer_discovery_rep = {
     'msgType'           : {'type': '<B', 'const': 2},
     'msgLength'         : {'type': '<H'},
     'errorCode'         : {'type': '<H'},
-    'numOfTransducerChannels'   : {'type': '<2B'},
-    'transducerChannelIds'      : {'type': '$array$<16B'},
-    'transducerChannelNames'    : {'type': '$array$<16s'},
+    'numOfTransducerChannels'   : {'type': '<2B', 'cmd':'num'},
+    'transducerChannelIds'      : {'type': '<16B', 'cmd': 'array'},
+    'transducerChannelNames'    : {'type': '<16s', 'cmd': 'array'},
 
 }
 
@@ -163,30 +152,85 @@ class tpl2msg:
         self.buffer = ""
         self.rethash = []
         loc = 0
-        self.concattype = ""
-        for k, v in self.tpl.items():
-            self.concattype += v['type']
-            loc += struct.calcsize(v['type'])
 
     def decode(self, entcode):
         self.buffer = ""
         self.rethash = []
         loc = 0
         for k, v in self.tpl.items():
-            self.rethash[k] = struct.unpack_from(v['type'], entcode, loc)
-            loc += struct.calcsize(v['type'])
-        return self.
+            if('type' in v.keys()):
+                if('cmd' in v.keys()):
+                    if('num' in v['cmd']):
+                        numof = int(struct.unpack('<B', entcode, loc))
+                        print("numOf:", k, numof)
+                        self.rethash[k] = numof
+                        loc += struct.calcsize(v['type'])
+                    elif('addrtype' in v['cmd']):
+                        addrtype = int(struct.unpack('<B', entcode, loc))
+                        print("addrType:", k, addrtype)
+                        self.rethash[k] = addrtype
+                        loc += struct.calcsize(v['type'])
+                    elif('addr' in v['cmd']):
+                        if 1 == addrtype:
+                            ipent = ipaddress.ip_address(struct.unpack('<4B', entcode, loc))
+                        elif 2 == addrtype:
+                            ipent = ipaddress.ip_address(struct.unpack('<8B', entcode, loc))
+                        self.rethash[k] = ipent 
+                        loc += struct.calcsize(v['type'])
+                    elif('array' == v['cmd']):
+                        ent = []
+                        for i in range(numof):
+                            ent.append(struct.unpack_from(v['type'], entcode, loc))
+                            loc += struct.calcsize(v['type'])
+                        self.rethash[k] = ent
+                    else:
+                        print("Error: unknown cmd", v['cmd'])
+                else:
+                    self.rethash[k] = struct.unpack_from(v['type'], entcode, loc)
+                    loc += struct.calcsize(v['type'])
+            else:
+                print("Error: no type in ", k)
+        return self.rethash
 
     def encode(self, enthash):
         loc = 0
+        self.buffer = ""
         for k, v in self.tpl.items():
-            struct.pack_into(v['type'], self.buffer, loc, enthash[k])
-            loc += struct.calcsize(v['type'])
+            if('type' in v.keys()):
+                if('cmd' in v.keys()):
+                    if('num' in v['cmd']):
+                        numof = enthash[k]
+                        print("numOf:", k, numof)
+                        struct.pack_into(v['type'], self.buffer, loc, numof)
+                        loc += struct.calcsize(v['type'])
+                    elif('addrtype' in v['cmd']):
+                        addrtype = enthash[k]
+                        print("addrType:", k, addrtype)
+                        struct.pack_into(v['type'], self.buffer, loc, addrtype)
+                        loc += struct.calcsize(v['type'])
+                    elif('addr' in v['cmd']):
+                        if 1 == addrtype:
+                            ipent = ipaddress.packed(enthash[k])
+                        elif 2 == addrtype:
+                            ipent = ipaddress.packed(enthash[k])
+                        struct.pack_into(v['type'], self.buffer, loc, ipent)
+                        loc += struct.calcsize(v['type'])
+                    elif('array' == v['cmd']):
+                        ent = []
+                        for i in range(numof):
+                            struct.pack_into(v['type'], self.buffer, loc, enthash[k,i])
+                            loc += struct.calcsize(v['type'])
+                    else:
+                        print("Error: unknown cmd", v['cmd'])
+                else:
+                    struct.pack_into(v['type'], self.buffer, loc, enthash[k])
+                    loc += struct.calcsize(v['type'])
+            else:
+                print("Error: no type in ", k)
         return self.buffer
 
 # test
-ncap_announcement_ipv4_func = tpl2msg(ncap_announcement_ipv4)
-ncap_announcement_ipv6_func = tpl2msg(ncap_announcement_ipv6)
+ncap_announcement_func = tpl2msg(ncap_announcement)
 ncap_tim_announcement_func = tpl2msg(ncap_tim_announcement)
 ncap_tim_transducer_announcement_func = tpl2msg(ncap_tim_transducer_announcement)
 ncap_discovery_cmd_func = tpl2msg(ncap_discovery_cmd)
