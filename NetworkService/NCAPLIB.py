@@ -60,7 +60,7 @@ ncap_discovery_cmd = {
     'msgType'           : {'type': '<B', 'const': 1},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'appId'             : {'type': '<16s'},
-    'timeout'           : {'type': '<8B'},
+    'timeout'           : {'type': '<8s'},
 }
 
 ncap_discovery_rep = {
@@ -82,7 +82,7 @@ ncap_tim_discovery_cmd = {
     'msgType'           : {'type': '<B', 'const': 1},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
-    'timeout'           : {'type': '<8B'},
+    'timeout'           : {'type': '<8s'},
 }
 
 ncap_tim_discovery_rep = {
@@ -91,7 +91,7 @@ ncap_tim_discovery_rep = {
     'msgType'           : {'type': '<B', 'const': 2},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'errorCode'         : {'type': '<H'},
-    'numOfTims'         : {'type': '<2B', 'cmd': 'num'},
+    'numOfTims'         : {'type': '<2s', 'cmd': 'num'},
     'timIds'            : {'type': '<16s', 'cmd': 'array'},
     'timNames'          : {'type': '<16s', 'cmd': 'array'},
 }
@@ -103,7 +103,7 @@ ncap_tim_transducer_discovery_cmd = {
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
-    'timeout'           : {'type': '<8B'},
+    'timeout'           : {'type': '<8s'},
 }
 
 ncap_tim_transducer_discovery_rep = {
@@ -112,7 +112,7 @@ ncap_tim_transducer_discovery_rep = {
     'msgType'           : {'type': '<B', 'const': 2},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'errorCode'         : {'type': '<H'},
-    'numOfTransducerChannels'   : {'type': '<2B', 'cmd': 'num'},
+    'numOfTransducerChannels'   : {'type': '<2s', 'cmd': 'num'},
     'transducerChannelIds'      : {'type': '<16s', 'cmd':  'array'},
     'transducerChannelNames'    : {'type': '<16s', 'cmd':  'array'},
 
@@ -125,9 +125,9 @@ Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM = {
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
-    'channelId'         : {'type': '<2B'},
+    'channelId'         : {'type': '<2s'},
     'samplingMode'      : {'type': '<B'},
-    'timeout'           : {'type': '<8B'},
+    'timeout'           : {'type': '<8s'},
 }
 
 Read_TEDS_cmd = {
@@ -137,12 +137,12 @@ Read_TEDS_cmd = {
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
-    'channelId'         : {'type': '<2B'},
+    'channelId'         : {'type': '<2s'},
     'cmdClassid'        : {'type': '<B', 'const': 1}, # common cmd
     'cmdFunctionId'     : {'type': '<B', 'const': 2}, # Read TEDS
     'tedsAccessCode'    : {'type': '<B'},
-    'tedsOffset'        : {'type': '<4B'},
-    'timeout'           : {'type': '<8B'},
+    'tedsOffset'        : {'type': '<4s'},
+    'timeout'           : {'type': '<8s'},
 }
 
 Read_TEDS_rep = {
@@ -153,8 +153,8 @@ Read_TEDS_rep = {
     'errorCode'         : {'type': '<H'},
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
-    'channelId'         : {'type': '<2B'},
-    'tedsOffset'        : {'type': '<4B'},
+    'channelId'         : {'type': '<2s'},
+    'tedsOffset'        : {'type': '<4s'},
     'rawTEDSBlock'      : {'type': '$rawTEDS$', 'cmd': 'rawTEDS'},
 }
 
@@ -164,8 +164,7 @@ class tpl2msg:
         self.maxbytelength = maxbytelength
 
     def decode(self, entcode):
-        retcode = 0
-        rethash = []
+        rethash = {}
         loc = 0
         lengthloc = 0
         lengthnum = 0
@@ -173,61 +172,55 @@ class tpl2msg:
         for k, v in self.tpl.items():
             if('type' in v.keys()):
                 if('const' in v.keys()):
-                    constval = int(struct.unpack(v['type'], entcode, loc))
+                    constval = struct.unpack_from(v['type'], entcode, loc)[0]
                     if(constval != v['const']):
-                        print("Error: Message type mismatch")
-                        retcode = 10
+                        raise Exception("Error: Message type mismatch")
                     rethash[k] = constval
                     loc += struct.calcsize(v['type'])
                 elif('cmd' in v.keys()):
                     if('length' in v['cmd']):
                         lengthloc = loc
-                        lengthnum = int(struct.unpack(v['type'], entcode, loc))
+                        lengthnum = struct.unpack_from(v['type'], entcode, loc)[0]
                         rethash[k] = lengthnum
                         loc += struct.calcsize(v['type'])
                     elif('num' in v['cmd']):
-                        numof = int(struct.unpack('<B', entcode, loc))
-                        print("numOf:", k, numof)
+                        numof = struct.unpack_from('<B', entcode, loc)[0]
                         rethash[k] = numof
                         loc += struct.calcsize(v['type'])
                     elif('addrtype' in v['cmd']):
-                        addrtype = int(struct.unpack('<B', entcode, loc))
-                        print("addrType:", k, addrtype)
+                        addrtype = struct.unpack_from('<B', entcode, loc)[0]
                         rethash[k] = addrtype
                         loc += struct.calcsize(v['type'])
                     elif('addr' in v['cmd']):
                         if 1 == addrtype:
-                            ipent = ipaddress.ip_address(struct.unpack('<4B', entcode, loc))
+                            iptype = '<4s'
                         elif 2 == addrtype:
-                            ipent = ipaddress.ip_address(struct.unpack('<8B', entcode, loc))
+                            iptype = '<16s'
+                        ipent = ipaddress.ip_address(struct.unpack_from(iptype, entcode, loc)[0])
                         rethash[k] = ipent 
-                        loc += struct.calcsize(v['type'])
+                        loc += struct.calcsize(iptype)
                     elif('array' == v['cmd']):
                         ent = []
                         for i in range(numof):
-                            ent.append(struct.unpack_from(v['type'], entcode, loc))
+                            ent.append(struct.unpack_from(v['type'], entcode, loc)[0])
                             loc += struct.calcsize(v['type'])
                         rethash[k] = ent
                     elif('rawTEDS' == v['cmd']):
                         rethash[k] = entcode[loc:]
                         # rethash[k] = memoryview(entcode[loc:]).cast('H')
                     else:
-                        print("Error: unknown cmd", v['cmd'])
-                        retcode = 20
+                        raise Exception("Error: unknown cmd", v['cmd'])
                 else:
-                    rethash[k] = struct.unpack_from(v['type'], entcode, loc)
+                    rethash[k] = struct.unpack_from(v['type'], entcode, loc)[0]
                     loc += struct.calcsize(v['type'])
             else:
-                print("Error: no type in ", k)
-                retcode = 30
+                raise Exception("Error: no type in ", k)
         if(lengthloc > 0):
             if(lengthnum != loc):
-                print("Error: length mismatch cal:", loc, " given:", lengthnum)
-                retcode = 40
-        return rethash, retcode
+                raise Exception("Error: length mismatch cal:", loc, " given:", lengthnum)
+        return rethash
 
     def encode(self, enthash):
-        retcode = 0
         loc = 0
         buffer = bytearray([0x0]*self.maxbytelength)
         lengthnum = 0
@@ -240,8 +233,7 @@ class tpl2msg:
                     if(not constval):
                         constval = v['const']
                     elif(constval != v['const']):
-                        print("Error: Message type mismatch")
-                        retcode = 10
+                        raise Exception("Error: Message type mismatch")
                     struct.pack_into(v['type'], buffer, loc, constval)
                     loc += struct.calcsize(v['type'])
                 elif('cmd' in v.keys()):
@@ -251,12 +243,10 @@ class tpl2msg:
                         loc += struct.calcsize(v['type'])
                     elif('num' in v['cmd']):
                         numof = enthash[k]
-                        print("numOf:", k, numof)
                         struct.pack_into(v['type'], buffer, loc, numof)
                         loc += struct.calcsize(v['type'])
                     elif('addrtype' in v['cmd']):
                         addrtype = enthash[k]
-                        print("addrType:", k, addrtype)
                         struct.pack_into(v['type'], buffer, loc, addrtype)
                         loc += struct.calcsize(v['type'])
                     elif('addr' in v['cmd']):
@@ -274,18 +264,15 @@ class tpl2msg:
                             struct.pack_into(v['type'], buffer, loc, enthash[k,i])
                             loc += struct.calcsize(v['type'])
                     else:
-                        print("Error: unknown cmd", v['cmd'])
-                        retcode = 20
+                        raise Exception("Error: unknown cmd", v['cmd'])
                 else:
-#                    print(v['type'], buffer, loc, k, enthash[k], type(enthash[k]))
                     struct.pack_into(v['type'], buffer, loc, enthash[k])
                     loc += struct.calcsize(v['type'])
             else:
-                print("Error: no type in ", k)
-                retcode = 30
+                raise Exception("Error: no type in ", k)
         if(lengthloc > 0):
             struct.pack_into(lengthtype, buffer, lengthloc, loc)
-        return buffer[:loc], retcode
+        return buffer[:loc]
 
 # test
 ncap_announcement_func = tpl2msg(ncap_announcement)
@@ -311,4 +298,7 @@ ncap_announcement_test = {
     'ncapAddress'       : '10.1.1.2', #{'type': '$addrtype$', 'cmd':'addr'},
 }
 
-print(ncap_announcement_func.encode(ncap_announcement_test))
+encoded_na = ncap_announcement_func.encode(ncap_announcement_test)
+print(encoded_na)
+decoded_na = ncap_announcement_func.decode(encoded_na)
+print(decoded_na)
