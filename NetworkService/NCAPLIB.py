@@ -72,7 +72,7 @@ ncap_discovery_rep = {
     'appId'             : {'type': '<16s'},
     'ncapId'            : {'type': '<16s'},
     'ncapName'          : {'type': '<16s'},
-    'addressType'       : {'type': '<10s', 'cmd': 'addrtype'},
+    'addressType'       : {'type': '<B', 'cmd': 'addrtype'},
     'ncapAddress'       : {'type': '$addrtype$', 'cmd': 'addr'},
 }
 
@@ -229,11 +229,12 @@ class tpl2msg:
         for k, v in self.tpl.items():
             if('type' in v.keys()):
                 if('const' in v.keys()):
-                    constval = enthash[k]
-                    if(not constval):
+                    if(k in enthash.keys()):
+                        constval = enthash[k]
+                        if(constval != v['const']):
+                            raise Exception("Error: Message type mismatch")
+                    else:
                         constval = v['const']
-                    elif(constval != v['const']):
-                        raise Exception("Error: Message type mismatch")
                     struct.pack_into(v['type'], buffer, loc, constval)
                     loc += struct.calcsize(v['type'])
                 elif('cmd' in v.keys()):
@@ -288,9 +289,9 @@ Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_func = tpl2msg(S
 Read_TEDS_cmd_func = tpl2msg(Read_TEDS_cmd)
 
 ncap_announcement_test = {
-    'netSvcType'        : 1, #{'type': '<B', 'const': 1},
-    'netSvcId'          : 1, #{'type': '<B', 'const': 1},
-    'msgType'           : 3, #{'type': '<B', 'const': 3},
+    'netSvcType'        : 1, #{'type': '<B', 'const': 1}, # if specified, it will be checked. it can be omiteed.
+    'netSvcId'          : 1, #{'type': '<B', 'const': 1}, #
+    'msgType'           : 3, #{'type': '<B', 'const': 3}, #
     'msgLength'         : 10, #{'type': '<H'},
     'ncapId'            : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0', #{'type': '<16s'},
     'ncapName'          : 'Name for NCAP1'.encode(), #{'type': '<16s'},
