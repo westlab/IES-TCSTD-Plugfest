@@ -5,25 +5,28 @@ from threading import Timer
 
 stateINITIAL = 0
 stateDISCOVERY = 1
-stateANNOUNCEMENT = 1
-stateSYNCACCESS = 2
-stateSEND
-stateSYNCREPLY = 3
-stateASYNCACCESS = 4
-stateASYNCTERMINATE = 5
-stateTIM = 6
+stateSECESSION = 2
+stateANNOUNCEMENT = 3
+stateSYNCACCESS = 4
+stateSEND = 5
+stateSYNCREPLY = 6
+stateASYNCACCESS = 7
+stateASYNCTERMINATE = 8
+stateASYNCSEND = 9
+stateTIM = 9
 
 tokenINITIAL = 0
 tokenDISCOVERY = 1
-tokenANNOUNCEMENT = 1
-tokenSYNCACCESS = 2
-tokenSEND
-tokenSYNCREPLY = 3
-tokenASYNCACCESS = 4
-tokenASYNCTERMINATE = 5
-tokenTIM = 6
+tokenSECESSION = 2
+tokenANNOUNCEMENT = 3
+tokenSYNCACCESS = 4
+tokenSEND = 5
+tokenSYNCREPLY = 6
+tokenASYNCACCESS = 7
+tokenASYNCTERMINATE = 8
+tokenTIM = 9
 
-annoucementTimerInterval = 1
+annoucementTimerInterval = 1.0
 
 NCAPstate = stateINITIAL
 class NCAPstatemachine:
@@ -38,10 +41,10 @@ class NCAPstatemachine:
                 self.nextstate = stateANNOUNCEMENT
             elif fire == tokenDISCOVERY:
                 self.nextstate = stateDISCOVERY
+            elif fire == tokenSECESSION:
+                self.nextstate = stateSECESSION
             elif fire == tokenSYNCACCESS:
                 self.nextstate = stateSYNCACCESS
-            elif fire == tokenSYNCSEND:
-                self.nextstate = stateSEND
             elif fire == tokenASYNCACCESS:
                 self.nextstate = stateASYNCACCESS
             elif fire == tokenASYNCACCESSTERMINATE:
@@ -49,39 +52,44 @@ class NCAPstatemachine:
             elif fire == tokenTIM:
                 self.nextstate = stateTIM
             else:
-                raise Exception("Error: Illegal state")
-        elif self.state == DISCOVERY:
-            # generate 
-'''
-In the INITIAL state
- - send the announcement message in an interval (but the interval is not given in the .0)
-  - If discovery message is received go to DISCOVERY
-   - If sync read/write cmd receives go to SYNCACC
-    - If syncaccwait table is not null, do pooling of all entries
-        - and if sensor data is updated, go to SYNCSEND
-         - If async read/write cmd receives go to ASYNCACC
-          - If sensor trigger is issued and sensor data generated go to TIM state
-
-          in the DISCOVERY state
-           - Update ncap service friends table according to DISCOVERY
-           (the need of this table is not given in .0)
-            - send DISCOVERY reply and return to INITIAL
-
-            in the SYNCACC state
-             - Assert sensor active and update syncaccwait table
-              - return to INITIAL
-
-              in the SYNCSEND state
-               - generate (reply) message of sensor data and remove the entry from syncaccwait table
-                - return to INITIAL
-
-                in the ASYNCACC state
-                 - update asyncaccwait table
-                  - return to INITIAL
-
-                  in the TIM state
-                   - check the table of asyncaccwait table and send (push) message of sensor data 
-'''
+                raise Exception("Error: Illegal token")
+        elif self.state == stateANNOUNCEMENT:
+            # generate and send message
+            self.nextstate = stateINITIAL
+        elif self.state == stateDISCOVERY:
+            # Update discovery table according to DISCOVERY
+            # generate message and send
+        elif self.state == stateSECESSION:
+            # remove entry from discovery table
+            self.nextstate = stateINITIAL
+        elif self.state == stateSYNCACCESS:
+            # request to read sensor data
+            # update sensor request table
+            self.nextstate = stateINITIAL
+        elif self.state == stateASYNCACCESS:
+            # complete reading sensor data
+            # generate message and send
+            self.nextstate = stateINITIAL
+        elif self.state == stateASYNCTERMINATE:
+            # remove entry from ASYNC read
+            self.nextstate = stateINITIAL
+        elif self.state == stateTIM:
+            # sensor becomes active and get data
+            # check async table
+            if table has entry:
+                self.nextstate = stateASYNCSEND
+            # check sync table
+                self.nextstate = stateSEND
+            self.nextstate = stateINITIAL
+        elif self.state == stateASYNCSEND:
+            # send async callback message
+            self.nextstate = stateINITIAL
+        elif self.state == stateSEND:
+            # send sync reply message
+            self.nextstate = stateINITIAL
+        else:
+            raise Exception("Error: Illegal state")
+        # check timer and remove the expired entries in discovery table
 
 NCAPSM = NCAPstatemachine()
 
