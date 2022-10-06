@@ -3,6 +3,7 @@ import struct
 import ipaddress
 import io
 import csv
+import pprint
 
 # msgType: Reserved 0 Command 1 Reply 2 Announcement 3 Notification 4 Callback 5
 # addressType: IPv4 1 IPv6 2
@@ -411,11 +412,11 @@ class Tpl2Msg:
         f = io.StringIO()
         f.write(csftext)
         f.seek(0)
-        enta = [row for row in csv.reader(f)]
+        enta = [row for row in csv.reader(f)][0]
         for k, v in self.tpl.items():
             if 'type' in v.keys():
                 if 'const' in v.keys():
-                    constval = enta[col]
+                    constval = int(enta[col])
                     if constval != v['const']:
                         raise Exception("Error: Message type mismatch")
                     rethash[k] = constval
@@ -427,11 +428,11 @@ class Tpl2Msg:
                         rethash[k] = lengthnum
                         col += 1
                     elif 'num' in v['cmd']:
-                        numof = enta[col]
+                        numof = int(enta[col])
                         rethash[k] = numof
                         col += 1
                     elif 'addrtype' in v['cmd']:
-                        addrtype = enta[col]
+                        addrtype = int(enta[col])
                         rethash[k] = addrtype
                         col += 1
                     elif 'addr' in v['cmd']:
@@ -494,7 +495,8 @@ class Tpl2Msg:
                         csf.append(numof)
                         col += 1
                     elif 'addrtype' in v['cmd']:
-                        csf.append(enthash[k])
+                        addrtype = enthash[k]
+                        csf.append(addrtype)
                         col += 1
                     elif 'addr' in v['cmd']:
                         if 1 == addrtype:
@@ -517,10 +519,16 @@ class Tpl2Msg:
                     col += 1
             else:
                 raise Exception("Error: no type in ", k)
-#	 length is not checked
+#    length is not checked
 #        if lengthloc > 0:
 #            struct.pack_into(lengthtype, buffer, lengthloc, loc)
-        return buffer[:loc]
+        csftext = ''
+        for i, ent in enumerate(csf):
+            if i != len(csf)-1:
+                csftext += str(ent) + ','
+            else:
+                csftext += str(ent)
+        return csftext
 
 # test
 ncap_announcement_func = Tpl2Msg(ncap_announcement)
@@ -553,7 +561,11 @@ ncap_announcement_test = {
     'ncapAddress'   : '10.1.1.2', #{'type': '$addrtype$', 'cmd':'addr'},
 }
 
-encoded_na = ncap_announcement_func.encode(ncap_announcement_test)
-print(encoded_na)
-decoded_na = ncap_announcement_func.decode(encoded_na)
-print(decoded_na)
+encoded_b = ncap_announcement_func.encode(ncap_announcement_test)
+print("enc,b:", encoded_b)
+decoded_b = ncap_announcement_func.decode(encoded_b)
+print("dec,b:", decoded_b)
+encoded_c = ncap_announcement_func.csfencode(ncap_announcement_test)
+print("enc,c:", encoded_c)
+encoded_c = ncap_announcement_func.csfdecode(encoded_c)
+print("dec,c:", encoded_c)
