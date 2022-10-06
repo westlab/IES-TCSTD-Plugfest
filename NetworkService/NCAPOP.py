@@ -10,7 +10,7 @@ import io
 import csv
 import pprint
 
-def confread:
+def confread():
     parser = argparse.ArgumentParser(
         prog = 'NCAP.py',
         usage = 'Receive BLE sensor data and send to MQTT server',
@@ -53,5 +53,5 @@ def confread:
     CNF_MQ_topicd0opres = confdata['spfx']+confdata['tomd0op']+confdata['locclient'] # publish
     CNF_NS_NCAPanno_interval = confdata['NS_NCAPanno_interval']
     CNF_NS_TIManno_interval = confdata['NS_TIManno_interval']
-    CNF_NS_CHanno_interval['NS_CHanno_interval']
-    pprint.pprint([topiccop, topicd0op]) #'_1451.1.6(SPFX)/D0(TOM)/LOC'
+    CNF_NS_CHanno_interval = confdata['NS_CHanno_interval']
+    pprint.pprint([CNF_MQ_topiccop, CNF_MQ_topicd0op]) #'_1451.1.6(SPFX)/D0(TOM)/LOC'
