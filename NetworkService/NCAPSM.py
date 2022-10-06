@@ -37,6 +37,7 @@ class NCAPstatemachine:
         self.state = self.nextstate
         if self.state == stateINITIAL:
             if fire == tokenTIM:
+                self.nextstate = stateTIM
             elif fire == tokenANNOUNCEMENT:
                 self.nextstate = stateANNOUNCEMENT
             elif fire == tokenDISCOVERY:
@@ -47,10 +48,8 @@ class NCAPstatemachine:
                 self.nextstate = stateSYNCACCESS
             elif fire == tokenASYNCACCESS:
                 self.nextstate = stateASYNCACCESS
-            elif fire == tokenASYNCACCESSTERMINATE:
+            elif fire == tokenASYNCACCESS:
                 self.nextstate = stateASYNCTERMINATE
-            elif fire == tokenTIM:
-                self.nextstate = stateTIM
             else:
                 raise Exception("Error: Illegal token")
         elif self.state == stateANNOUNCEMENT:
@@ -59,6 +58,7 @@ class NCAPstatemachine:
         elif self.state == stateDISCOVERY:
             # Update discovery table according to DISCOVERY
             # generate message and send
+            self.nextstate = stateINITIAL
         elif self.state == stateSECESSION:
             # remove entry from discovery table
             self.nextstate = stateINITIAL
@@ -76,10 +76,10 @@ class NCAPstatemachine:
         elif self.state == stateTIM:
             # sensor becomes active and get data
             # check async table
-            if table has entry:
-                self.nextstate = stateASYNCSEND
+            # if table has entry:
+                # self.nextstate = stateASYNCSEND
             # check sync table
-                self.nextstate = stateSEND
+                # self.nextstate = stateSEND
             self.nextstate = stateINITIAL
         elif self.state == stateASYNCSEND:
             # send async callback message
@@ -94,18 +94,24 @@ class NCAPstatemachine:
 NCAPSM = NCAPstatemachine()
 
 class RepeatableTimer(object):
-        def __init__(self, interval, function, args=[], kwargs={}):
-                    self._interval = interval
+    def __init__(self, interval, function, args=[], kwargs={}):
+        self._interval = interval
         self._function = function
         self._args = args
         self._kwargs = kwargs
     def start(self):
-                t = Timer(self._interval, self._function, *self._args, **self._kwargs)
+        t = Timer(self._interval, self._function, *self._args, **self._kwargs)
         t.start()
 
 def actionNCAPAnnouncement():
-
+    ### TODO implement NCAP announcement
+    # print("TODO implement NCAP announcement")
     timerNCAPAnnouncement.start()
+
+def actionASYNCACCESS():
+    ### TODO implement async access
+    # print("TODO implement async access")
+    timerASYNCACCESS.start()
 
 timerNCAPAnnouncement = RepeatableTimer(5.0, actionNCAPAnnouncement, ())
 timerNCAPAnnouncement.start()
