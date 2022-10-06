@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import struct
 import ipaddress
+import io
+import csv
 
 # msgType: Reserved 0 Command 1 Reply 2 Announcement 3 Notification 4 Callback 5
 # addressType: IPv4 1 IPv6 2
@@ -283,7 +285,7 @@ class Tpl2Msg:
         loc = 0
         lengthloc = 0
         lengthnum = 0
-        arrayloc = 0
+        col = 0
         for k, v in self.tpl.items():
             if 'type' in v.keys():
                 if 'const' in v.keys():
@@ -322,7 +324,7 @@ class Tpl2Msg:
                         rethash[k] = ent
                     elif 'block' == v['cmd']:
                         alltplkeys = self.tpl.keys()
-                        restkeys = alltplkeys[arrayloc+1:]
+                        restkeys = alltplkeys[col+1:]
                         restloc = 0
                         for restent in restkeys:
                             restloc += struct.calcsize(self.tpl[restent]['type'])
@@ -337,7 +339,7 @@ class Tpl2Msg:
                     loc += struct.calcsize(v['type'])
             else:
                 raise Exception("Error: no type in ", k)
-            arrayloc += 1
+            col += 1
         if lengthloc > 0:
             if lengthnum != loc:
                 raise Exception("Error: length mismatch cal:", loc, " given:", lengthnum)
@@ -399,6 +401,125 @@ class Tpl2Msg:
                 raise Exception("Error: no type in ", k)
         if lengthloc > 0:
             struct.pack_into(lengthtype, buffer, lengthloc, loc)
+        return buffer[:loc]
+
+    def csfdecode(self, csftext):
+        rethash = {}
+        col = 0
+        lengthloc = 0
+        lengthnum = 0
+        f = io.StringIO()
+        f.write(csftext)
+        f.seek(0)
+        enta = [row for row in csv.reader(f)]
+        for k, v in self.tpl.items():
+            if 'type' in v.keys():
+                if 'const' in v.keys():
+                    constval = enta[col]
+                    if constval != v['const']:
+                        raise Exception("Error: Message type mismatch")
+                    rethash[k] = constval
+                    col += 1
+                elif 'cmd' in v.keys():
+                    if 'length' in v['cmd']:
+                        lengthloc = col
+                        lengthnum = enta[col]
+                        rethash[k] = lengthnum
+                        col += 1
+                    elif 'num' in v['cmd']:
+                        numof = enta[col]
+                        rethash[k] = numof
+                        col += 1
+                    elif 'addrtype' in v['cmd']:
+                        addrtype = enta[col]
+                        rethash[k] = addrtype
+                        col += 1
+                    elif 'addr' in v['cmd']:
+                        if 1 == addrtype:
+                            ipent = ipaddress.IPv4Address(enta[col])
+                        elif 2 == addrtype:
+                            ipent = ipaddress.IPv6Address(enta[col])
+                        rethash[k] = ipent
+                        col += 1
+                    elif 'array' == v['cmd']:
+                        ent = []
+                        for _ in range(numof):
+                            ent.append(enta[col])
+                            col += 1
+                        rethash[k] = ent
+                    elif 'block' == v['cmd']:
+                        alltplkeys = self.tpl.keys()
+                        rethash[k] = enta[col:-len(alltplkeys[col+1:])]
+                        col += 1
+                    elif 'rawTEDS' == v['cmd']:
+                        rethash[k] = enta[col]
+                        col += 1
+                    else:
+                        raise Exception("Error: unknown cmd", v['cmd'])
+                else:
+                    rethash[k] = enta[col]
+                    col += 1
+            else:
+                raise Exception("Error: no type in ", k)
+# csf do not check
+#        if lengthloc > 0:
+#            if lengthnum != loc:
+#                raise Exception("Error: length mismatch cal:", loc, " given:", lengthnum)
+        return rethash
+
+    def csfencode(self, enthash):
+        col = 0
+        csf = []
+        lengthloc = 0
+        lengthtype = ""
+        for k, v in self.tpl.items():
+            if 'type' in v.keys():
+                if 'const' in v.keys():
+                    if k in enthash.keys():
+                        constval = enthash[k]
+                        if constval != v['const']:
+                            raise Exception("Error: Message type mismatch")
+                    else:
+                        constval = v['const']
+                    csf.append(constval)
+                    col += 1
+                elif 'cmd' in v.keys():
+                    if 'length' in v['cmd']:
+                        lengthloc = col
+                        lengthtype = v['type']
+                        csf.append(enthash[k])
+                        col += 1
+                    elif 'num' in v['cmd']:
+                        numof = enthash[k]
+                        csf.append(numof)
+                        col += 1
+                    elif 'addrtype' in v['cmd']:
+                        csf.append(enthash[k])
+                        col += 1
+                    elif 'addr' in v['cmd']:
+                        if 1 == addrtype:
+                            ipent = ipaddress.IPv4Address(enthash[k])
+                        elif 2 == addrtype:
+                            ipent = ipaddress.IPv6Address(enthash[k])
+                        csf.append(ipent)
+                        col += 1
+                    elif 'block' == v['cmd']:
+                        csf.append(enthash[k])
+                        col += 1
+                    elif 'array' == v['cmd']:
+                        for i in range(numof):
+                            csf.append(enthash[k])
+                            col += 1
+                    else:
+                        raise Exception("Error: unknown cmd", v['cmd'])
+                else:
+                    csf.append(enthash[k])
+                    col += 1
+            else:
+                raise Exception("Error: no type in ", k)
+#	 length is not checked
+#        if lengthloc > 0:
+#            struct.pack_into(lengthtype, buffer, lengthloc, loc)
         return buffer[:loc]
 
 # test
