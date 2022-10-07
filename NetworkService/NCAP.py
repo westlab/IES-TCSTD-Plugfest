@@ -17,6 +17,10 @@ import pprint
 import datetime
 import temporenc
 
+from NCAPLIB import Tpl2Msg
+from NCAPOP import confread
+from NCAPSM import NCAPstatemachine
+
 parser = argparse.ArgumentParser(
     prog = 'NCAP.py',
     usage = 'Receive BLE sensor data and send to MQTT server',
@@ -131,16 +135,6 @@ bnull = bytearray([0x0, 0x0, 0x0, 0x0, 0x0]);
 
 def s16(value):
     return -(value & 0b1000000000000000) | (value & 0b0111111111111111)
-
-def on_connect(client, flags, rc, properties):
-    print('[CONNECTED {}]'.format(client._client_id))
-
-def on_disconnect(client, packet, exc=None):
-    print('[DISCONNECTED {}]'.format(client._client_id))
-
-def on_subscribe(client, mid, qos, properties):
-    print('on subscribe')
-    print('[SUBCRIBED {} MID: {} QOS: {} PROPERTIES: {}]'.format(client._client_id, mid, qos, properties))
 
 def on_message(client, topic, payload, qos, properties):
     print('[RECV MSG {}] TOPIC: {} PAYLOAD: {} QOS: {} PROPERTIES: {}'
@@ -364,178 +358,54 @@ def on_message(client, topic, payload, qos, properties):
     else:
         print("Type of Message Error")
 
-class NtfyDelegate(btle.DefaultDelegate):
-    def __init__(self, params, alpsid, client):
-        btle.DefaultDelegate.__init__(self)
-        self.alpsid = alpsid
-        self.client = client
-        # ... initialise here
-    def handleNotification(self, cHandle, data):
-        # ... perhaps check cHandle
-        # ... process 'data'
-        cal = binascii.b2a_hex(data)
-        #print(u'handleNotification : {0}-{1}:'.format(cHandle, cal))
-        if int((cal[0:2]), 16) == 0xf2:
-            GeoMagnetic_X = '{0:.3f}'.format(s16(int((cal[6:8] + cal[4:6]), 16)) * 0.15)
-            GeoMagnetic_Y = '{0:.3f}'.format(s16(int((cal[10:12] + cal[8:10]), 16)) * 0.15)
-            GeoMagnetic_Z = '{0:.3f}'.format(s16(int((cal[14:16] + cal[12:14]), 16)) * 0.15)
-            vgeomagx[self.alpsid] = GeoMagnetic_X
-            vgeomagy[self.alpsid] = GeoMagnetic_Y
-            vgeomagz[self.alpsid] = GeoMagnetic_Z
-            print(self.alpsid, ':Geo-Magnetic X:', GeoMagnetic_X, ' Y:', GeoMagnetic_Y, ' Z:', GeoMagnetic_Z)
-            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGX', GeoMagnetic_X)
-            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGY', GeoMagnetic_Y)
-            self.client.publish(topicdop+str(self.alpsid)+'/GEOMAGZ', GeoMagnetic_Z)
-            Acceleration_X = '{0:.3f}'.format(1.0 * s16(int((cal[18:20] + cal[16:18]), 16)) / 1024)
-            Acceleration_Y = '{0:.3f}'.format(1.0 * s16(int((cal[22:24] + cal[20:22]), 16)) / 1024)
-            Acceleration_Z = '{0:.3f}'.format(1.0 * s16(int((cal[26:28] + cal[24:26]), 16)) / 1024)
-            vaccelx[self.alpsid] = Acceleration_X
-            vaccely[self.alpsid] = Acceleration_Y
-            vaccelz[self.alpsid] = Acceleration_Z
-            print(self.alpsid, ':Acceleration X:', Acceleration_X, ' Y:', Acceleration_Y, ' Z:', Acceleration_Z)
-            self.client.publish(topicdop+str(self.alpsid)+'/ACCELX', Acceleration_X)
-            self.client.publish(topicdop+str(self.alpsid)+'/ACCELY', Acceleration_Y)
-            self.client.publish(topicdop+str(self.alpsid)+'/ACCELZ', Acceleration_Z)
-        if int((cal[0:2]), 16) == 0xf3:
-            Pressure = '{0:.3f}'.format(int((cal[6:8] + cal[4:6]), 16) * 860.0/65535 + 250)
-            Humidity = '{0:.3f}'.format(1.0 * (int((cal[10:12] + cal[8:10]), 16) - 896 )/64)
-            Temperature = '{0:.3f}'.format(1.0*((int((cal[14:16] + cal[12:14]), 16) -2096)/50))
-            UV = '{0:.3f}'.format(int((cal[18:20] + cal[16:18]), 16) / (100*0.388))
-            AmbientLight = '{0:.3f}'.format(int((cal[22:24] + cal[20:22]), 16) / (0.05*0.928))
-            print(self.alpsid, ':Pressure:', Pressure, ' Humidity:', Humidity, ' Temperature:', Temperature)
-            self.client.publish(topicdop+str(self.alpsid)+'/PRES', Pressure)
-            self.client.publish(topicdop+str(self.alpsid)+'/HUMID', Humidity)
-            self.client.publish(topicdop+str(self.alpsid)+'/TEMP', Temperature)
-            print(self.alpsid, ':UV:', UV, ' AmbientLight:', AmbientLight)
-            self.client.publish(topicdop+str(self.alpsid)+'/UV', UV)
-            self.client.publish(topicdop+str(self.alpsid)+'/ILLUMI', AmbientLight)
-            vpres[self.alpsid] =  Pressure
-            vhumid[self.alpsid] = Humidity
-            vtemp[self.alpsid] = Temperature
-            vuv[self.alpsid] = UV
-            villumi[self.alpsid] = AmbientLight
- 
-class AlpsSensor(Peripheral):
-    def __init__(self, addr):
-        Peripheral.__init__(self, addr)
-        self.result = 1
+class NCAP:
+    def __init__(self):
+        print("NCAP setup")
 
-async def alpsmain(client):
-    print("ALPS", client)
-    print(' - alps connect', host, port)
-    await client.connect(host, port, keepalive=60)
-    print('ALPS setup')
-    alpsarray = []
-    n = 1
-    while True:
-        keyname = 'alpsmodule'+str(n)
-        if keyname in confdata:
-            if confdata[keyname] is not None:
-                alpsarray.append(AlpsSensor(confdata[keyname]))
-                print(" - No.%d : %s added" % (n, confdata[keyname]))
-            n += 1
-        else:
-            break
-    if n == 1:
-        print('Cannot find alpsmodule1 in your configuration file.')
-        sys.exit()
-    print('ALPS module ready')
-    for i,a in enumerate(alpsarray):
-        a.setDelegate( NtfyDelegate(btle.DefaultDelegate, i+1, client) )
-        print("Node:",i+1)
+        addr = uuid.UUID(int=uuid.getnode()).hex[-12:] + "mqtt"
+        print('MQTT client setup. Client ID:', addr)
+        self.client = gmqtt.Client(addr)
+        self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
+        self.client.on_subscribe = self.on_subscribe
+        self.client.on_message = self.on_message
 
-        #Hybrid MAG ACC8G　100ms　/ Other 1s
-        # code - meaning
-        a.writeCharacteristic(0x0013, struct.pack('<bb', 0x01, 0x00), True)
-        # Custom1 Notify Enable 
-        a.writeCharacteristic(0x0016, struct.pack('<bb', 0x01, 0x00), True)
-        # Custom2 Notify Enable
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2F, 0x03, 0x03), True)
-        # (不揮発)保存内容の初期化
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x01, 0x03, 0x7F), True)
-        # 地磁気、加速度,気圧,温度,湿度,UV,照度を有効
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x04, 0x03, 0x04), True)
-        # Hybrid Mode
-        # a.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x06, 0x04, 0x64, 0x00), True) # Fast 100msec (地磁気,加速度)
-        fastsample = confdata.get('fastsample')
-        if fastsample is not None:
-            faststime = abs(int(fastsample))
-            if(faststime > 999):
-                faststime = 999
-            fstimel = faststime % 128
-            fstimeh = int(faststime/128)
-            fstimelstr = format(fstimel, '08x')
-            fstimehstr = format(fstimeh, '08x')
-            fsstrl = int(fstimelstr[-2:], 16)
-            fsstrh = int(fstimehstr[-2:], 16)
-            a.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x06, 0x04, fsstrl, fsstrh), True) 
-        else:
-            a.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x06, 0x04, 0x7A, 0x01), True) 
-        # Fast 250msec (地磁気,加速度)
-        slowsample = confdata.get('slowsample')
-        if slowsample is not None:
-            slowstime = abs(int(slowsample))
-            if slowstime > 255:
-                slowstime = 255
-            a.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x05, 0x04, slowstime, 0x00), True)
-        else:
-            a.writeCharacteristic(0x0018, struct.pack('<bbbb', 0x05, 0x04, 0x01, 0x00), True)
-        # Slow 1sec (気圧,温度,湿度,UV,照度)     
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x02, 0x03, 0x01), True)
-        # 加速度±4G
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x2F, 0x03, 0x01), True)
-        # 設定内容保存
-        a.writeCharacteristic(0x0018, struct.pack('<bbb', 0x20, 0x03, 0x01), True)
-        # センサ計測開始
-    # Main loop --------
-    print('Notification wait')
-    while True:
-        for i,a in enumerate(alpsarray):
-            if a.waitForNotifications(1.0):
-                # handleNotification() was called
-                continue
-            # Perhaps do something else here
-#        await asyncio.Event().wait()
-        try:
-            await asyncio.wait_for(asyncio.Event().wait(), timeout=0.1)
-            print('end')
-            break
-        except asyncio.TimeoutError:
-            pass
+        print("statemachine setup")
+        self.stateMachine = NCAPstatemachine()
+    
+    def on_connect(self, client, flags, rc, properties):
+        print('[CONNECTED {}]'.format(self.client._client_id))
 
-async def mqttmain(clientm):
-    print('mqttmain')
-    print(' - mqtt connect', host, port)
-    await clientm.connect(host, port, keepalive=60)
-    print(' - subscribe')
-    clientm.subscribe(subscriptor, subscription_identifier=len(subscriptor))
-    await asyncio.Event().wait()
+    def on_disconnect(self, client, packet, exc=None):
+        print('[DISCONNECTED {}]'.format(client._client_id))
+
+    def on_subscribe(self, client, mid, qos, properties):
+        print('on subscribe')
+        print('[SUBCRIBED {} MID: {} QOS: {} PROPERTIES: {}]'.format(client._client_id, mid, qos, properties))
+
+    def on_message(self, client, topic, payload, qos, properties):
+        """
+        送られてきたリクエストを NCAPLIB を使用してパースし，NCAPSM を使用してレスポンスを生成し，返す
+        """
+        ### TODO implement
+        print('[RECV MSG {}] TOPIC: {} PAYLOAD: {} QOS: {} PROPERTIES: {}'
+            .format(client._client_id, topic, payload, qos, properties))
+        print("TODO: implement on_message")
+    
+    async def start(self, host, port, subscriptor):
+        await self.client.connect(host, port, keepalive=60)
+        self.client.subscribe(subscriptor, subscription_identifier=len(subscriptor))
+        await asyncio.Event().wait()
 
 if __name__ == '__main__':
-    print('start')
+    print('demonstration start')
     if sys.version_info[0] != 3:
         print("Version 3 is required")
-    print('MQTT setup')
-    node = uuid.getnode()
-    mac = uuid.UUID(int=node)
-    addr = mac.hex[-12:]
-    addrm = addr+'mqtt'
-    print(' - Client ID='+addr)
-    client = gmqtt.Client(addr)
-    clientm = gmqtt.Client(addrm)
-    if (confdata['username']):
-        print('Credentials for ', confdata['username'])
-        client.set_auth_credentials(confdata['username'], confdata['password'])
-        clientm.set_auth_credentials(confdata['username'], confdata['password'])
-    print(' - set callbacks')
-    client.on_connect = on_connect
-    client.on_disconnect = on_disconnect
-    clientm.on_connect = on_connect
-    clientm.on_disconnect = on_disconnect
-#    clientm.on_subscribe = on_subscribe
-    clientm.on_message = on_message
+    
+    ncap = NCAP()
+
     loop = asyncio.get_event_loop()
     gather = asyncio.gather(
-        alpsmain(client), mqttmain(clientm)
+        ncap.start("localhost", "1883", subscriptor)
     )
     loop.run_until_complete(gather)
