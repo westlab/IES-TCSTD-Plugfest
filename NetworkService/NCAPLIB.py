@@ -48,7 +48,7 @@ ncap_discovery_cmd = {
     'msgType'           : {'type': '<B', 'const': 1},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'appId'             : {'type': '<16s'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 ncap_discovery_rep = {
@@ -70,7 +70,7 @@ ncap_tim_discovery_cmd = {
     'msgType'           : {'type': '<B', 'const': 1},
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 ncap_tim_discovery_rep = {
@@ -91,7 +91,7 @@ ncap_tim_transducer_discovery_cmd = {
     'msgLength'         : {'type': '<H', 'cmd': 'length'},
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 ncap_tim_transducer_discovery_rep = {
@@ -117,7 +117,7 @@ Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd = {
     'timId'             : {'type': '<16s'},
     'channelId'         : {'type': '<2s'},
     'samplingMode'      : {'type': '<B'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep = {
@@ -130,7 +130,7 @@ Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep = {
     'timId'             : {'type': '<16s'},
     'channelId'         : {'type': '<2s'},
     'transducersampleData'  : {'type': '<16s'},
-    'timestamp'           : {'type': '<8s'},
+    'timestamp'         : {'type': '<8s'},
 }
 
 # 10.2.2
@@ -143,7 +143,7 @@ Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd = {
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
     'channelId'         : {'type': '<2s'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
     'numOfSamples'      : {'type': '<4s'},
     'sampleInterval'    : {'type': '<8s'},
     'startTime'         : {'type': '<8s'},
@@ -172,7 +172,7 @@ Synchronous_read_transducer_sample_data_from_multiple_channel_of_a_TIM_cmd = {
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
     'channelIds'        : {'type': '<2s', 'cmd': 'block'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
     'samplingMode'      : {'type': '<B'},
 }
 
@@ -199,7 +199,7 @@ Synchronous_read_transducer_block_data_from_multiple_channel_of_a_TIM_cmd = {
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
     'channelIds'        : {'type': '<2s', 'cmd': 'block'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
     'numOfSamples'      : {'type': '<4s'},
     'sampleInterval'    : {'type': '<8s'},
     'startTime'         : {'type': '<8s'},
@@ -215,7 +215,7 @@ Synchronous_read_transducer_block_data_from_multiple_channel_of_a_TIM_rep = {
     'timId'             : {'type': '<16s'},
     'channelIds'        : {'type': '<2s', 'cmd': 'block'},
     'transducerSampleDatas' : {'type': '$block$', 'cmd': 'block'},
-    'endTimestamp'         : {'type': '<8s'},
+    'endTimestamp'      : {'type': '<8s'},
 }
 
 # 10.2.7 not yet
@@ -229,7 +229,7 @@ Synchronous_write_transducer_sample_data_from_a_channel_of_a_TIM_cmd = {
     'timId'             : {'type': '<16s'},
     'channelId'         : {'type': '<2s'},
     'samplingMode'      : {'type': '<B'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 Synchronous_write_transducer_sample_data_from_a_channel_of_a_TIM_rep = {
@@ -257,7 +257,7 @@ Read_TEDS_cmd = {
     'cmdFunctionId'     : {'type': '<B', 'const': 2}, # Read TEDS
     'tedsAccessCode'    : {'type': '<B'},
     'tedsOffset'        : {'type': '<4s'},
-    'timeout'           : {'type': '<8s'},
+    'timeout'           : {'type': '<Q'},
 }
 
 Read_TEDS_rep = {
@@ -321,12 +321,13 @@ class Tpl2Msg:
                             loc += struct.calcsize(v['type'])
                         rethash[k] = ent
                     elif 'block' == v['cmd']:
-                        alltplkeys = self.tpl.keys()
+                        alltplkeys = list(self.tpl.keys())
                         restkeys = alltplkeys[arrayloc+1:]
                         restloc = 0
                         for restent in restkeys:
                             restloc += struct.calcsize(self.tpl[restent]['type'])
                         rethash[k] = entcode[loc:-restloc]
+                        loc = len(entcode)-restloc
                     elif 'rawTEDS' == v['cmd']:
                         rethash[k] = entcode[loc:]
                         # rethash[k] = memoryview(entcode[loc:]).cast('H')
@@ -338,9 +339,6 @@ class Tpl2Msg:
             else:
                 raise Exception("Error: no type in ", k)
             arrayloc += 1
-        if lengthloc > 0:
-            if lengthnum != loc:
-                raise Exception("Error: length mismatch cal:", loc, " given:", lengthnum)
         return rethash
 
     def encode(self, enthash):
@@ -382,10 +380,15 @@ class Tpl2Msg:
                         struct.pack_into(iptype, buffer, loc, ipent)
                         loc += struct.calcsize(iptype)
                     elif 'block' == v['cmd']:
-                        entlen = len(enthash[k].encode())
-                        typestr = str(entlen)+'s'
-                        struct.pack_into(typestr, buffer, loc, enthash[k])
-                        loc += entlen
+                        if v['type'] == '$block$':
+                            entlen = len(enthash[k])
+                            typestr = str(entlen)+'s'
+                            struct.pack_into(typestr, buffer, loc, bent)
+                            loc += struct.calcsize(typestr)
+                        else:
+                            for bent in enthash[k]:
+                                struct.pack_into(v['type'], buffer, loc, bent)
+                                loc += struct.calcsize(v['type'])
                     elif 'array' == v['cmd']:
                         for i in range(numof):
                             struct.pack_into(v['type'], buffer, loc, enthash[k,i])
@@ -436,3 +439,22 @@ encoded_na = ncap_announcement_func.encode(ncap_announcement_test)
 print(encoded_na)
 decoded_na = ncap_announcement_func.decode(encoded_na)
 print(decoded_na)
+
+sync_read_xdcr_blk_mult_channel_rep = {
+    'netSvcType'    : 2,
+    'netSvcId'      : 3,
+    'msgType'       : 1,
+    'msgLength'     : 10,
+    'ncapId'        : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
+    'timId'         : b'\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12',
+    'channelIds'    : [b'\x00\xff' , b'\x01\xff', b'\x02\xff', b'\x03\xff'],
+    'timeout'       : 23423,
+    'samplingMode'  : 1,
+}
+
+sync_read_xdcr_blk_mul_channel_func = Tpl2Msg(
+        Synchronous_read_transducer_sample_data_from_multiple_channel_of_a_TIM_cmd)
+read_na = sync_read_xdcr_blk_mul_channel_func.encode(sync_read_xdcr_blk_mult_channel_rep)
+print(read_na)
+read_na = sync_read_xdcr_blk_mul_channel_func.decode(read_na)
+print(read_na)
