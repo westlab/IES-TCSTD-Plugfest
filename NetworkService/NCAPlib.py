@@ -277,9 +277,26 @@ Read_TEDS_rep = {
 }
 
 class Tpl2Msg:
-    def __init__(self, tpl, maxbytelength = 1024):
+    def __init__(self, tpl, msgtype=0, maxbytelength=1024):
         self.tpl = tpl
+        self.msgtype = msgtype
         self.maxbytelength = maxbytelength
+
+    def decmsg(self, idata):
+        if self.msgtype == 0: # D0 message
+            return self.decode(idata)
+        elif self.msgtype == 1: # CSF message
+            return self.csfdecode(idata)
+        else:
+            raise Exception("Error: Illegal msgtype in decode")
+
+    def encmsg(self, idict):
+        if self.msgtype == 0: # D0 message
+            return self.encode(idict)
+        elif self.msgtype == 1: # CSF message
+            return self.csfencode(idict)
+        else:
+            raise Exception("Error: Illegal msgtype in encode")
 
     def decode(self, entcode):
         rethash = {}
@@ -533,61 +550,66 @@ class Tpl2Msg:
                 csftext += str(ent)
         return csftext
 
-# test
-ncap_announcement_func = Tpl2Msg(ncap_announcement)
-ncap_tim_announcement_func = Tpl2Msg(ncap_tim_announcement)
-ncap_tim_transducer_announcement_func = Tpl2Msg(ncap_tim_transducer_announcement)
-ncap_discovery_cmd_func = Tpl2Msg(ncap_discovery_cmd)
-ncap_discovery_rep_func = Tpl2Msg(ncap_discovery_rep)
-ncap_tim_discovery_cmd_func = Tpl2Msg(ncap_tim_discovery_cmd)
-ncap_tim_discovery_rep_func = Tpl2Msg(ncap_tim_discovery_rep)
-ncap_tim_transducer_discovery_cmd_func = Tpl2Msg(ncap_tim_transducer_discovery_cmd)
-ncap_tim_transducer_discovery_rep_func = Tpl2Msg(ncap_tim_transducer_discovery_rep)
-Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd_func = \
-    Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd)
-Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep_func = \
-    Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep)
-Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd_func = \
-    Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd)
-Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep_func = \
-    Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep)
-Read_TEDS_cmd_func = Tpl2Msg(Read_TEDS_cmd)
+if __name__=="__main__":
+    # test
+    ncap_announcement_func = Tpl2Msg(ncap_announcement)
+    ncap_tim_announcement_func = Tpl2Msg(ncap_tim_announcement)
+    ncap_tim_transducer_announcement_func = Tpl2Msg(ncap_tim_transducer_announcement)
+    ncap_discovery_cmd_func = Tpl2Msg(ncap_discovery_cmd)
+    ncap_discovery_rep_func = Tpl2Msg(ncap_discovery_rep)
+    ncap_tim_discovery_cmd_func = Tpl2Msg(ncap_tim_discovery_cmd)
+    ncap_tim_discovery_rep_func = Tpl2Msg(ncap_tim_discovery_rep)
+    ncap_tim_transducer_discovery_cmd_func = Tpl2Msg(ncap_tim_transducer_discovery_cmd)
+    ncap_tim_transducer_discovery_rep_func = Tpl2Msg(ncap_tim_transducer_discovery_rep)
+    Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd_func = \
+        Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd)
+    Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep_func = \
+        Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep)
+    Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd_func = \
+        Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd)
+    Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep_func = \
+        Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep)
+    Read_TEDS_cmd_func = Tpl2Msg(Read_TEDS_cmd)
 
-ncap_announcement_test = {
-    'netSvcType'    : 1, # if specified, it will be checked. it can be omiteed.
-    'netSvcId'      : 1, #
-    'msgType'       : 3, #
-    'msgLength'     : 10, #{'type': '<H'},
-    'ncapId'        : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
-    'ncapName'      : 'Name for NCAP1'.encode(), #{'type': '<16s'},
-    'addressType'   : 1, #{'type': '<B', 'cmd':'addrtype'},
-    'ncapAddress'   : '10.1.1.2', #{'type': '$addrtype$', 'cmd':'addr'},
-}
+    ncap_announcement_test = {
+        'netSvcType'    : 1, # if specified, it will be checked. it can be omiteed.
+        'netSvcId'      : 1, #
+        'msgType'       : 3, #
+        'msgLength'     : 10, #{'type': '<H'},
+        'ncapId'        : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
+        'ncapName'      : 'Name for NCAP1'.encode(), #{'type': '<16s'},
+        'addressType'   : 1, #{'type': '<B', 'cmd':'addrtype'},
+        'ncapAddress'   : '10.1.1.2', #{'type': '$addrtype$', 'cmd':'addr'},
+    }
 
-encoded_b = ncap_announcement_func.encode(ncap_announcement_test)
-print("enc,b:", encoded_b)
-decoded_b = ncap_announcement_func.decode(encoded_b)
-print("dec,b:", decoded_b)
-encoded_c = ncap_announcement_func.csfencode(ncap_announcement_test)
-print("enc,c:", encoded_c)
-encoded_c = ncap_announcement_func.csfdecode(encoded_c)
-print("dec,c:", encoded_c)
+    encoded_b = ncap_announcement_func.encode(ncap_announcement_test)
+    print("enc,b:", encoded_b)
+    decoded_b = ncap_announcement_func.decode(encoded_b)
+    print("dec,b:", decoded_b)
+    encoded_b = ncap_announcement_func.encmsg(ncap_announcement_test)
+    print("enc,b:", encoded_b)
+    decoded_b = ncap_announcement_func.decmsg(encoded_b)
+    print("dec,b:", decoded_b)
+    encoded_c = ncap_announcement_func.csfencode(ncap_announcement_test)
+    print("enc,c:", encoded_c)
+    encoded_c = ncap_announcement_func.csfdecode(encoded_c)
+    print("dec,c:", encoded_c)
 
-sync_read_xdcr_blk_mult_channel_rep = {
-    'netSvcType'    : 2,
-    'netSvcId'      : 3,
-    'msgType'       : 1,
-    'msgLength'     : 10,
-    'ncapId'        : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
-    'timId'         : b'\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12',
-    'channelIds'    : [b'\x00\xff' , b'\x01\xff', b'\x02\xff', b'\x03\xff'],
-    'timeout'       : 23423,
-    'samplingMode'  : 1,
-}
+    sync_read_xdcr_blk_mult_channel_rep = {
+        'netSvcType'    : 2,
+        'netSvcId'      : 3,
+        'msgType'       : 1,
+        'msgLength'     : 10,
+        'ncapId'        : b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
+        'timId'         : b'\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12',
+        'channelIds'    : [b'\x00\xff' , b'\x01\xff', b'\x02\xff', b'\x03\xff'],
+        'timeout'       : 23423,
+        'samplingMode'  : 1,
+    }
 
-sync_read_xdcr_blk_mul_channel_func = Tpl2Msg(
-        Synchronous_read_transducer_sample_data_from_multiple_channel_of_a_TIM_cmd)
-read_d = sync_read_xdcr_blk_mul_channel_func.encode(sync_read_xdcr_blk_mult_channel_rep)
-print(read_d)
-read_e = sync_read_xdcr_blk_mul_channel_func.decode(read_d)
-print(read_e)
+    sync_read_xdcr_blk_mul_channel_func = Tpl2Msg(
+            Synchronous_read_transducer_sample_data_from_multiple_channel_of_a_TIM_cmd)
+    read_d = sync_read_xdcr_blk_mul_channel_func.encode(sync_read_xdcr_blk_mult_channel_rep)
+    print(read_d)
+    read_e = sync_read_xdcr_blk_mul_channel_func.decode(read_d)
+    print(read_e)
