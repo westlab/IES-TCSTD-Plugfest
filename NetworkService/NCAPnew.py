@@ -1,5 +1,11 @@
 
-
+REQ_DICT = {
+    "discovery": "141",
+    "secession": "",
+    "syncRead": "",
+    "asyncAccess": "",
+    "asyncTerminate": "",
+}
 
 class NCAP:
     def __init__(self) -> None:
@@ -58,18 +64,19 @@ class NCAP:
         Start while statement
         """
 
-        ### TODO implement ParseRequest
+        while True:
+            ### TODO implement ParseRequest
 
-        ### TODO implement if statement
-        if req == discovery:
-            self.descovery()
-        elif req == secession:
-            self.secession()
-        elif req == syncAccess:
-            self.syncAccess()
-        elif req == asyncAccess:
-            self.asyncAccess()
-        elif req == asyncTerminate:
-            self.asyncTerminate()
-        else:
-            raise Exception("Illigal reqest")
+            ### TODO implement if statement
+            if req == discovery:
+                self.descovery()
+            elif req == secession:
+                self.secession()
+            elif req == syncAccess:
+                self.syncAccess()
+            elif req == asyncAccess:
+                self.asyncAccess()
+            elif req == asyncTerminate:
+                self.asyncTerminate()
+            else:
+                raise Exception("Illigal reqest")
