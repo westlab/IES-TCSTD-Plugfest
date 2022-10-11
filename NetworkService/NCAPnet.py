@@ -7,7 +7,7 @@ import uuid
 import gmqtt
 
 from NCAPlib import Tpl2Msg
-from NCAPsm import MBRTable
+# from NCAPsm import MBRTable
 
 addr = uuid.UUID(int=uuid.getnode()).hex[-12:] + "mqtt"
 client = gmqtt.Client(addr)
@@ -43,4 +43,7 @@ if __name__ == "__main__":
     SUBSCRIPTOR = [
         gmqtt.Subscription("hoge", qos=2), gmqtt.Subscription("fuga", qos=2)
     ]
-    start("localhost", "1883", SUBSCRIPTOR)
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start("localhost", "1883", SUBSCRIPTOR))
+    
