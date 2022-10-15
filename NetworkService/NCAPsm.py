@@ -70,93 +70,6 @@ class NCAPstatemachine:
 
 NCAPSM = NCAPstatemachine()
 
-class MBRtable:
-    def __init__(self, ):
-        timtbl = []
-        apptbl = []
-    # from NCAP
-    def addtim(self, timId, timName):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                print('Warning: timId(', timId, ') is duplicated')
-        timtbl.append({'id':timId, 'name':timName, 'xdcrs':[]})
-    def deletetim(self, timId):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                return pop(i)
-        print('Warning: timId(', timId, ') is not found')
-    def addxdcr(self, timId, xdcrId, xdcrName):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                for xdcrent in timent['xdcrs']:
-                    if xdcrent['id'] == xdcrid:
-                        print('Warning: xdcrId(', xdcrId, ') is duplicated')
-                timid['xdcr'].append({'id':xdcrId, 'name':xdcrName})
-                return
-        print('Warning: timId(', timId, ') is not found')
-    def deletexdcr(self, xdcrId):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                for i, xdcrent in enumerate(timent['xdcrs']):
-                    if xdcrent['id'] == xdcrid:
-                        return pop(i)
-                print('Warning: xdcrId(', xdcrId, ') is not found')
-                return
-        print('Warning: timId(', timId, ') is not found')
-    # from APP
-    def jointim(self, appId, timId):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                for tblent in apptbl:
-                    if (tblent['appId'] == appId) and (tblent['timId'] == timId):
-                        print('Warning: Already joined')
-                        return
-                apptbl.append(('appId':appId, 'timId':timId, 'xdcrIds':()))
-                return
-        print('Warning: timId(', timId, ') is not found')
-    def leavetim(self, appId, timId):
-        for i, timent in enumerate(timtbl):
-            if timent['id'] == timId:
-                return pop(i)
-        print('Warning: timId(', timId, ') is not found')
-    def joinxdcr(self, appId, timId, xdcrId):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                for xdcrent in timent['xdcrs']:
-                    if xdcrent['id'] == xdcrid:
-                        for tblent in apptbl:
-                            if (tblent['appId'] == appId) and (tblent['timId'] == timId):
-                                if xdcrId in tblent['xdcrIds']:
-                                    print('Warning: Already joined')
-                                    return
-                                tblent['xdcrIds'].append(xdcrId)
-                                return
-                        print('Warning: timid(', timid, ') for appId', appId, ') is not registered')
-                        return
-                print('Warning: xdcrId(', xdcrId, ') is not found')
-                return
-        print('Warning: timId(', timId, ') is not found')
-    def leavexdcr(self, appId, timId, xdcrId):
-        for timent in timtbl:
-            if timent['id'] == timId:
-                for xdcrent in timent['xdcrs']:
-                    if xdcrent['id'] == xdcrid:
-                        for tblent in apptbl:
-                            if (tblent['appId'] == appId) and (tblent['timId'] == timId):
-                                if xdcrId in tblent['xdcrIds']:
-                                    tblent['xdcrIds'].remove(xdcrId)
-                                    return
-                                print('Warning: xdcrId(', xdcrId, ') is not registed')
-                                return
-                        print('Warning: timid(', timid, ') for appId', appId, ') is not registered')
-                        return
-                print('Warning: xdcrId(', xdcrId, ') is not found')
-                return
-        print('Warning: timId(', timId, ') is not found')
-
-
-APPTBL = APPtable()
-
 class RepeatableTimer(object):
     def __init__(self, interval, function, args=[], kwargs={}):
         self._interval = interval
@@ -166,7 +79,6 @@ class RepeatableTimer(object):
     def start(self):
         t = Timer(self._interval, self._function, *self._args, **self._kwargs)
         t.start()
-
 
 ncapId   = b'\x12\x34\x56\x78\x9a\xbc\xde\xf0\x12\x34\x56\x78\x9a\xbc\xde\xf0',
 ncapName = 'Name for NCAP1'.encode()
