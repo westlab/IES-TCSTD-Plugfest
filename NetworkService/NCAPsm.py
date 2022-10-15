@@ -68,44 +68,6 @@ class NCAPstatemachine:
         else:
             raise Exception("Error: Illegal token")
 
-        #elif self.state == stateANNOUNCEMENT:
-        #    generate and send message
-        elif self.state == stateDISCOVERY:
-            # Update discovery table according to DISCOVERY
-            # generate message and send
-            self.nextstate = stateINITIAL
-        elif self.state == stateSECESSION:
-            # remove entry from discovery table
-            self.nextstate = stateINITIAL
-        elif self.state == stateSYNCACCESS:
-            # request to read sensor data
-            # update sensor request table
-            self.nextstate = stateINITIAL
-        elif self.state == stateASYNCACCESS:
-            # complete reading sensor data
-            # generate message and send
-            self.nextstate = stateINITIAL
-        elif self.state == stateASYNCTERMINATE:
-            # remove entry from ASYNC read
-            self.nextstate = stateINITIAL
-        elif self.state == stateTIM:
-            # sensor becomes active and get data
-            # check async table
-            # if table has entry:
-                # self.nextstate = stateASYNCSEND
-            # check sync table
-                # self.nextstate = stateSEND
-            self.nextstate = stateINITIAL
-        elif self.state == stateASYNCSEND:
-            # send async callback message
-            self.nextstate = stateINITIAL
-        elif self.state == stateSEND:
-            # send sync reply message
-            self.nextstate = stateINITIAL
-        else:
-            raise Exception("Error: Illegal state")
-        # check timer and remove the expired entries in discovery table
-
 NCAPSM = NCAPstatemachine()
 
 class MBRtable:

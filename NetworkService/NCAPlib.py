@@ -256,8 +256,8 @@ Read_TEDS_cmd = {
     'ncapId'            : {'type': '<16s'},
     'timId'             : {'type': '<16s'},
     'channelId'         : {'type': '<2s'},
-    'cmdClassid'        : {'type': '<B', 'const': 1}, # common cmd
-    'cmdFunctionId'     : {'type': '<B', 'const': 2}, # Read TEDS
+#    'cmdClassid'        : {'type': '<B', 'const': 1}, # common cmd
+#    'cmdFunctionId'     : {'type': '<B', 'const': 2}, # Read TEDS
     'tedsAccessCode'    : {'type': '<B'},
     'tedsOffset'        : {'type': '<4s'},
     'timeout'           : {'type': '<Q'},
