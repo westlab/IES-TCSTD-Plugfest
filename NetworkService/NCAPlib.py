@@ -572,7 +572,7 @@ if __name__=="__main__":
     Read_TEDS_cmd_func = Tpl2Msg(Read_TEDS_cmd)
 
     ncap_announcement_test = {
-        'netSvcType'    : 1, # if specified, it will be checked. it can be omiteed.
+        'netSvcType'    : 1, # if specified, it will be checked. it can be omitted.
         'netSvcId'      : 1, #
         'msgType'       : 3, #
         'msgLength'     : 10, #{'type': '<H'},

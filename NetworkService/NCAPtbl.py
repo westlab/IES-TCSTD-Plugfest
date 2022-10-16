@@ -1,6 +1,6 @@
 from pprint import pprint
 
-class MBRtable:
+class MBRtbl:
     def __init__(self, ):
         self.timtbl = []
     # from NCAP
@@ -124,7 +124,7 @@ class MBRtable:
     def getxdcrbyname(self, timid, xdcrname):
         pass
 
-MBRTBL = MBRtable()
+MBRTBL = MBRtbl()
 
 if __name__ == '__main__':
         MBRTBL.jointim('appId#1', 'TIMid#1')
