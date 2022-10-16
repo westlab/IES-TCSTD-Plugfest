@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import signal
 import time
 import pprint
