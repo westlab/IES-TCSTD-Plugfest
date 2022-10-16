@@ -38,7 +38,7 @@ class MBRtbl:
         timla = []
         for i, timent in enumerate(self.timtbl):
             if show:
-                print('SHOWL:timId:', timent['id'], ' name:', timent['name'])
+                print('SHOW TL:timId:', timent['id'], ' name:', timent['name'])
             timla.append([timent['id'], timent['name'], timent['apps']])
         return timla
     def getxdcrlist(self, timId, show=0):
@@ -47,7 +47,7 @@ class MBRtbl:
             if timent['id'] == timId:
                 for xdcrent in timent['xdcrs']:
                     if show:
-                        print('SHOWL:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
+                        print('SHOW XL:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
                             ' apps:', xdcrent['apps'],\
                             ' of timId:', timent['id'], ' name:', timent['name'])
                     xdcra.append([xdcrent['id'], xdcrent['name'], xdcrent['apps'],\
@@ -106,7 +106,7 @@ class MBRtbl:
         for i, timent in enumerate(self.timtbl):
             if appId in timent['apps']:
                 if show:
-                    print('SHOWA:timId:', timent['id'], ' of AppID:', timent['appId'])
+                    print('SHOW TA:timId:', timent['id'], ' of AppID:', timent['appId'])
                 timla.append([timent['id'], timent['name']])
         return timla
     def getxdcrapp(self, appId, show=0): # get xdcrid by appId
@@ -115,7 +115,7 @@ class MBRtbl:
             for xdcrent in timent['xdcrs']:
                 if appId in xdcrent['apps']:
                     if show:
-                        print('SHOWA:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
+                        print('SHOW XA:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
                             ' of timId:', timent['id'], ' name:', timent['name'])
                     xdcra.append([timent['id'], timent['name'], xdcrent['id'], xdcrent['name']])
         return xdcra
@@ -124,7 +124,7 @@ class MBRtbl:
         for i, timent in enumerate(self.timtbl):
             if attrvalue in timent[attrname]:
                 if show:
-                    print('SHOWA:timId:', timent['id'], ' name:', timent['name'], 'of AppID:', timent['appId'])
+                    print('SHOW TB:timId:', timent['id'], ' name:', timent['name'], 'of AppID:', timent['apps'])
                 timla.append(timent['id'])
         return timla
     def getxdcrbyattr(self, attrname, attrvalue, show=0):
@@ -133,7 +133,7 @@ class MBRtbl:
             for xdcrent in timent['xdcrs']:
                 if attrvalue in xdcrent[attrname]:
                     if show:
-                        print('SHOWA:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
+                        print('SHOW XB:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
                             ' of timId:', timent['id'], ' name:', timent['name'])
                     xdcra.append([timent['id'], timent['name'], xdcrent['id'], xdcrent['name']])
         return xdcra
@@ -141,8 +141,8 @@ class MBRtbl:
         timla = []
         for i, timent in enumerate(self.timtbl):
             if show:
-                print('SHOWA:timId:', timent['id'], ' name:', timent['name'], 'of AppID:',\
-                    timent['appId'], ' ', attr, ':', timent[attr])
+                print('SHOW AT:timId:', timent['id'], ' name:', timent['name'], 'of AppID:',\
+                    timent['apps'], ' ', attr, ':', timent[attr])
             timla.append([timent['id'], timent[attr]])
         return timla
     def getattrofxdcr(self, attr, show=0):
@@ -150,8 +150,8 @@ class MBRtbl:
         for timent in self.timtbl:
             for xdcrent in timent['xdcrs']:
                 if show:
-                    print('SHOWA:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
-                        ' of timId:', timent['id'], ' name:', timent['name'], ' ', attr, ':', timeent[attr])
+                    print('SHOW AX:xdcrId:', xdcrent['id'], ' name:', xdcrent['name'],\
+                        ' of timId:', timent['id'], ' name:', timent['name'], ' ', attr, ':', timent[attr])
                 xdcra.append([timent['id'], timent['name'], xdcrent['id'], xdcrent['name'], xdcrent[attr]])
         return xdcra
 
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         MBRTBL.joinxdcr('appId#6', 'TIMid#3', 'xdcrid#4')
         MBRTBL.showtimlist()
 
-        MBRTBL.gettimbyattr('name', 'TIMname#3')
-        MBRTBL.getxdcrbyattr('name', 'xdcrName$4#')
-        MBRTBL.getattroftim('name')
-        MBRTBL.getattrofxdcr('name')
+        pprint(MBRTBL.gettimbyattr('name', 'TIMname#3', 1))
+        pprint(MBRTBL.getxdcrbyattr('name', 'xdcrName$4#', 1))
+        pprint(MBRTBL.getattroftim('name', 1))
+        pprint(MBRTBL.getattrofxdcr('name', 1))
