@@ -276,7 +276,7 @@ Read_TEDS_rep = {
     'rawTEDSBlock'      : {'type': '$block$', 'cmd': 'block'},
 }
 
-class Tpl2Msg:
+class NCAPmsg:
     def __init__(self, tpl, msgtype=0, maxbytelength=1024):
         self.tpl = tpl
         self.msgtype = msgtype
@@ -552,24 +552,24 @@ class Tpl2Msg:
 
 if __name__=="__main__":
     # test
-    ncap_announcement_func = Tpl2Msg(ncap_announcement)
-    ncap_tim_announcement_func = Tpl2Msg(ncap_tim_announcement)
-    ncap_tim_transducer_announcement_func = Tpl2Msg(ncap_tim_transducer_announcement)
-    ncap_discovery_cmd_func = Tpl2Msg(ncap_discovery_cmd)
-    ncap_discovery_rep_func = Tpl2Msg(ncap_discovery_rep)
-    ncap_tim_discovery_cmd_func = Tpl2Msg(ncap_tim_discovery_cmd)
-    ncap_tim_discovery_rep_func = Tpl2Msg(ncap_tim_discovery_rep)
-    ncap_tim_transducer_discovery_cmd_func = Tpl2Msg(ncap_tim_transducer_discovery_cmd)
-    ncap_tim_transducer_discovery_rep_func = Tpl2Msg(ncap_tim_transducer_discovery_rep)
+    ncap_announcement_func = NCAPmsg(ncap_announcement)
+    ncap_tim_announcement_func = NCAPmsg(ncap_tim_announcement)
+    ncap_tim_transducer_announcement_func = NCAPmsg(ncap_tim_transducer_announcement)
+    ncap_discovery_cmd_func = NCAPmsg(ncap_discovery_cmd)
+    ncap_discovery_rep_func = NCAPmsg(ncap_discovery_rep)
+    ncap_tim_discovery_cmd_func = NCAPmsg(ncap_tim_discovery_cmd)
+    ncap_tim_discovery_rep_func = NCAPmsg(ncap_tim_discovery_rep)
+    ncap_tim_transducer_discovery_cmd_func = NCAPmsg(ncap_tim_transducer_discovery_cmd)
+    ncap_tim_transducer_discovery_rep_func = NCAPmsg(ncap_tim_transducer_discovery_rep)
     Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd_func = \
-        Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd)
+        NCAPmsg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_cmd)
     Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep_func = \
-        Tpl2Msg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep)
+        NCAPmsg(Synchronous_read_transducer_sample_data_from_a_channel_of_a_TIM_rep)
     Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd_func = \
-        Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd)
+        NCAPmsg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_cmd)
     Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep_func = \
-        Tpl2Msg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep)
-    Read_TEDS_cmd_func = Tpl2Msg(Read_TEDS_cmd)
+        NCAPmsg(Synchronous_read_transducer_block_data_from_a_channel_of_a_TIM_rep)
+    Read_TEDS_cmd_func = NCAPmsg(Read_TEDS_cmd)
 
     ncap_announcement_test = {
         'netSvcType'    : 1, # if specified, it will be checked. it can be omitted.
@@ -607,7 +607,7 @@ if __name__=="__main__":
         'samplingMode'  : 1,
     }
 
-    sync_read_xdcr_blk_mul_channel_func = Tpl2Msg(
+    sync_read_xdcr_blk_mul_channel_func = NCAPmsg(
             Synchronous_read_transducer_sample_data_from_multiple_channel_of_a_TIM_cmd)
     read_d = sync_read_xdcr_blk_mul_channel_func.encode(sync_read_xdcr_blk_mult_channel_rep)
     print(read_d)
